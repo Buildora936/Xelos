@@ -1,0 +1,132 @@
+
+/* Circular spinner */
+.spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid #dbeafe;
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spinner-rotate 700ms linear infinite;
+}
+
+.spinner-sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.spinner-lg {
+  width: 44px;
+  height: 44px;
+  border-width: 4px;
+}
+
+.spinner-light {
+  border-color: rgb(255 255 255 / 35%);
+  border-top-color: #fff;
+}
+
+/* Full loading section */
+.loading-state {
+  display: flex;
+  min-height: 180px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.loading-text {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* Skeleton placeholders */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #e9eef5;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 65%),
+    transparent
+  );
+  content: "";
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.4s infinite;
+}
+
+.skeleton-text {
+  width: 100%;
+  height: 14px;
+}
+
+.skeleton-title {
+  width: 65%;
+  height: 22px;
+}
+
+.skeleton-image {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+}
+
+.skeleton-button {
+  width: 140px;
+  height: 44px;
+  border-radius: var(--radius-md);
+}
+
+/* Button loading indicator */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn-loading::after {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgb(255 255 255 / 40%);
+  border-top-color: #fff;
+  border-radius: 50%;
+  content: "";
+  animation: spinner-rotate 700ms linear infinite;
+}
+
+.btn-secondary.btn-loading::after,
+.btn-outline.btn-loading::after {
+  border-color: #bfdbfe;
+  border-top-color: var(--color-primary);
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner,
+  .skeleton::after,
+  .btn-loading::after {
+    animation-duration: 2s;
+  }
+}
