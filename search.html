@@ -1,0 +1,305 @@
+```html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Recherchez des produits sur XELOS. Explorez le catalogue, filtrez les résultats et trouvez ce qui vous correspond.">
+  <title>Recherche — XELOS</title>
+
+  <link rel="icon" href="assets/logos/xelos-logo.png">
+  <link rel="stylesheet" href="css/core/variables.css">
+  <link rel="stylesheet" href="css/core/reset.css">
+  <link rel="stylesheet" href="css/core/typography.css">
+  <link rel="stylesheet" href="css/core/layout.css">
+  <link rel="stylesheet" href="css/core/utilities.css">
+  <link rel="stylesheet" href="css/components/buttons.css">
+  <link rel="stylesheet" href="css/components/forms.css">
+  <link rel="stylesheet" href="css/components/header.css">
+  <link rel="stylesheet" href="css/components/footer.css">
+  <link rel="stylesheet" href="css/components/product-card.css">
+  <link rel="stylesheet" href="css/components/pagination.css">
+  <link rel="stylesheet" href="css/pages/search.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body class="search-page">
+  <a class="skip-link" href="#main">Passer au contenu</a>
+
+  <header class="site-header">
+    <div class="header-main">
+      <button class="icon-button mobile-menu-toggle" id="mobileMenuToggle"
+        type="button" aria-label="Ouvrir le menu" aria-expanded="false"
+        aria-controls="mainNavigation">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
+
+      <a class="site-logo" href="index.html" aria-label="XELOS — Accueil">
+        <img src="assets/logos/xelos-logo.png" alt="XELOS" width="42" height="42">
+      </a>
+
+      <nav class="main-navigation" id="mainNavigation" aria-label="Navigation principale">
+        <a href="shop.html">Boutique</a>
+        <a href="category.html">Catégories</a>
+        <a href="collections.html">Collections</a>
+      </nav>
+
+      <form class="header-search" id="headerSearchForm" role="search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input id="headerSearchInput" type="search" name="q"
+          placeholder="Rechercher un produit..." autocomplete="off"
+          aria-label="Rechercher dans la boutique">
+        <button type="submit" aria-label="Lancer la recherche">
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </button>
+      </form>
+
+      <div class="header-actions">
+        <a class="icon-button header-account" href="account.html" aria-label="Mon compte">
+          <i class="fa-regular fa-user" aria-hidden="true"></i>
+        </a>
+        <a class="icon-button header-cart" href="cart.html" aria-label="Mon panier">
+          <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="search-hero">
+      <div class="search-hero-decoration search-decoration-one" aria-hidden="true"></div>
+      <div class="search-hero-decoration search-decoration-two" aria-hidden="true"></div>
+
+      <div class="search-hero-inner">
+        <p class="eyebrow"><span></span> L'univers XELOS</p>
+        <h1>Trouvez exactement<br>ce que vous <span>cherchez.</span></h1>
+        <p class="search-hero-copy">
+          Explorez le catalogue, affinez votre recherche et découvrez votre prochain coup de cœur.
+        </p>
+
+        <form class="search-main-form" id="searchForm" role="search">
+          <i class="fa-solid fa-magnifying-glass search-main-icon" aria-hidden="true"></i>
+          <label class="visually-hidden" for="searchInput">Que recherchez-vous ?</label>
+          <input id="searchInput" name="q" type="search"
+            placeholder="Un produit, une marque, une catégorie..."
+            autocomplete="off" aria-autocomplete="list"
+            aria-controls="searchSuggestions" aria-expanded="false">
+          <button class="search-clear" id="clearSearch" type="button"
+            aria-label="Effacer la recherche" hidden>
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+          <button class="search-submit" type="submit">
+            Rechercher <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </button>
+
+          <div class="search-suggestions" id="searchSuggestions"
+            role="listbox" aria-label="Suggestions de recherche" hidden></div>
+        </form>
+
+        <div class="search-hero-meta">
+          <span><i class="fa-solid fa-sliders" aria-hidden="true"></i> Filtres précis</span>
+          <span><i class="fa-solid fa-bolt" aria-hidden="true"></i> Recherche rapide</span>
+          <span><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Catalogue organisé</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="search-content section-container" aria-labelledby="resultsHeading">
+      <div class="search-breadcrumb">
+        <a href="index.html">Accueil</a>
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        <span>Recherche</span>
+      </div>
+
+      <div class="search-layout">
+        <aside class="search-filters" id="searchFilters" aria-label="Filtres de recherche">
+          <div class="filter-heading">
+            <div>
+              <span class="filter-kicker">Personnalisez</span>
+              <h2>Filtres</h2>
+            </div>
+            <button class="filter-reset" id="resetFilters" type="button">Réinitialiser</button>
+          </div>
+
+          <div class="active-filters" id="activeFilters" aria-live="polite"></div>
+
+          <fieldset class="filter-group">
+            <legend>Catégorie</legend>
+            <label class="filter-option">
+              <input type="radio" name="categoryFilter" value="" checked>
+              <span>Toutes les catégories</span>
+            </label>
+            <div id="categoryOptions">
+              <p class="filter-hint">Les catégories disponibles apparaîtront avec le catalogue.</p>
+            </div>
+          </fieldset>
+
+          <fieldset class="filter-group">
+            <legend>Budget</legend>
+            <div class="price-inputs">
+              <label>
+                <span>Minimum</span>
+                <input id="minPrice" type="number" min="0" step="0.01"
+                  inputmode="decimal" placeholder="0">
+              </label>
+              <span class="price-separator" aria-hidden="true">—</span>
+              <label>
+                <span>Maximum</span>
+                <input id="maxPrice" type="number" min="0" step="0.01"
+                  inputmode="decimal" placeholder="∞">
+              </label>
+            </div>
+            <p class="filter-hint" id="priceFilterHint">Prix dans la devise du catalogue.</p>
+          </fieldset>
+
+          <fieldset class="filter-group">
+            <legend>Disponibilité</legend>
+            <label class="filter-option filter-checkbox">
+              <input id="availableOnly" type="checkbox">
+              <span>Disponibles uniquement</span>
+            </label>
+          </fieldset>
+
+          <button class="apply-filters" id="applyFilters" type="button">
+            Appliquer les filtres
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </button>
+        </aside>
+
+        <div class="search-results">
+          <div class="results-toolbar">
+            <div class="results-title-group">
+              <p class="results-eyebrow">Votre sélection</p>
+              <h2 id="resultsHeading">Explorez le catalogue</h2>
+              <p id="resultsCount" class="results-count" aria-live="polite">
+                Saisissez une recherche pour commencer.
+              </p>
+            </div>
+
+            <div class="results-controls">
+              <button class="mobile-filter-button" id="mobileFilterToggle"
+                type="button" aria-controls="searchFilters" aria-expanded="false">
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                Filtres
+                <span id="filterCount" hidden>0</span>
+              </button>
+
+              <label class="sort-control">
+                <span>Trier par</span>
+                <select id="sortSelect">
+                  <option value="relevance">Pertinence</option>
+                  <option value="newest">Nouveautés</option>
+                  <option value="price-asc">Prix croissant</option>
+                  <option value="price-desc">Prix décroissant</option>
+                  <option value="name-asc">Nom : A à Z</option>
+                </select>
+              </label>
+
+              <div class="view-toggle" aria-label="Affichage des résultats">
+                <button type="button" class="view-button is-active"
+                  data-view="grid" aria-label="Affichage en grille"
+                  aria-pressed="true">
+                  <i class="fa-solid fa-grip" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="view-button"
+                  data-view="list" aria-label="Affichage en liste"
+                  aria-pressed="false">
+                  <i class="fa-solid fa-list" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="search-context" id="searchContext" hidden>
+            <span id="searchContextText"></span>
+            <button type="button" id="clearQuery">Effacer la recherche</button>
+          </div>
+
+          <div class="search-loading" id="searchLoading" hidden>
+            <span class="search-spinner" aria-hidden="true"></span>
+            <p>Recherche en cours...</p>
+          </div>
+
+          <div class="search-error" id="searchError" role="alert" hidden>
+            <div class="state-icon"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></div>
+            <h3>La recherche n'a pas abouti</h3>
+            <p id="searchErrorMessage">Une erreur est survenue. Réessayez.</p>
+            <button class="button button-primary" id="retrySearch" type="button">Réessayer</button>
+          </div>
+
+          <div class="search-empty" id="searchEmpty" hidden>
+            <div class="empty-visual" aria-hidden="true">
+              <span class="empty-orbit orbit-a"></span>
+              <span class="empty-orbit orbit-b"></span>
+              <span class="empty-search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+            </div>
+            <span class="empty-kicker">Aucun résultat</span>
+            <h3 id="emptyTitle">Aucun produit trouvé</h3>
+            <p id="emptyMessage">Essayez d'autres mots-clés ou modifiez vos filtres.</p>
+            <div class="empty-actions">
+              <button class="button button-primary" id="emptyReset" type="button">
+                Réinitialiser les filtres
+              </button>
+              <a class="button button-secondary" href="shop.html">Voir la boutique</a>
+            </div>
+            <div class="search-suggestions-empty" id="recentSearches" hidden>
+              <span>Recherches récentes</span>
+              <div id="recentSearchList"></div>
+            </div>
+          </div>
+
+          <div class="search-no-catalog" id="searchNoCatalog" hidden>
+            <div class="state-icon"><i class="fa-solid fa-box-open" aria-hidden="true"></i></div>
+            <h3>Le catalogue n'est pas encore connecté</h3>
+            <p>Les résultats apparaîtront ici lorsque les données réelles du catalogue seront disponibles.</p>
+            <a class="button button-secondary" href="shop.html">Retour à la boutique</a>
+          </div>
+
+          <div class="search-product-grid" id="searchProductGrid"
+            aria-label="Résultats de recherche" aria-busy="false"></div>
+
+          <nav class="search-pagination" id="searchPagination"
+            aria-label="Pagination des résultats" hidden>
+            <button type="button" id="previousPage" aria-label="Page précédente">
+              <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <div id="paginationNumbers"></div>
+            <button type="button" id="nextPage" aria-label="Page suivante">
+              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <section class="search-bottom-cta">
+      <div class="search-bottom-inner">
+        <div>
+          <span class="eyebrow">Vous hésitez encore ?</span>
+          <h2>Votre prochaine découverte<br>est peut-être à un clic.</h2>
+        </div>
+        <a href="collections.html" class="button button-light">
+          Explorer les collections
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+        <div class="cta-mark" aria-hidden="true">X</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-bottom">
+      <span>© <span id="footerYear"></span> XELOS. Tous droits réservés.</span>
+      <div>
+        <a href="privacy-policy.html">Confidentialité</a>
+        <a href="terms.html">Conditions</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/search.js"></script>
+</body>
+</html>
+```
