@@ -1475,3 +1475,224 @@
   }
 }
 ```
+```css
+/* Search-specific product cards */
+
+.search-page .search-result-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #eceef3;
+  border-radius: 9px;
+  background: #fff;
+  animation: search-card-enter .32s ease both;
+  animation-delay: calc(var(--card-index, 0) * 25ms);
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.search-page .search-result-card:hover {
+  border-color: #d5e0fa;
+  box-shadow: 0 12px 30px rgb(19 38 82 / 8%);
+  transform: translateY(-3px);
+}
+
+.search-page .search-result-media {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 35%, #fff 0, #f8f9fc 62%, #f0f2f7 100%);
+  text-decoration: none;
+}
+
+.search-page .search-result-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  object-fit: contain;
+  transition: transform .35s ease;
+}
+
+.search-page .search-result-card:hover .search-result-media img {
+  transform: scale(1.045);
+}
+
+.search-page .search-result-media.has-no-image {
+  background:
+    radial-gradient(circle at center, #f9fbff 0, #eef2fb 100%);
+}
+
+.search-page .search-image-fallback {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid #dce4f5;
+  border-radius: 16px;
+  color: #8ca1ce;
+  background: rgb(255 255 255 / 75%);
+  font-size: 21px;
+}
+
+.search-page .search-result-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 15px 14px 16px;
+}
+
+.search-page .search-result-category {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  margin-bottom: 8px;
+  color: #5678bd;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.search-page .search-result-name {
+  width: 100%;
+  margin: 0;
+  color: #171922;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.search-page .search-result-name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.search-page .search-result-name a:hover {
+  color: var(--search-blue);
+}
+
+.search-page .search-result-description {
+  display: -webkit-box;
+  width: 100%;
+  overflow: hidden;
+  margin: 7px 0 15px;
+  color: #858b98;
+  font-size: 10px;
+  line-height: 1.7;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.search-page .search-result-price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 7px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.search-page .search-result-price {
+  color: #151720;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+
+.search-page .search-result-compare-price {
+  color: #a1a5af;
+  font-size: 10px;
+  text-decoration: line-through;
+}
+
+.search-page .search-result-discount {
+  padding: 4px 5px;
+  border-radius: 4px;
+  color: #b42335;
+  background: #fff0f1;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.search-page .search-result-availability {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.search-page .search-result-availability > span:first-child {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.search-page .search-result-availability.is-available {
+  color: #16834a;
+}
+
+.search-page .search-result-availability.is-available > span:first-child {
+  background: #22c55e;
+}
+
+.search-page .search-result-availability.is-unavailable {
+  color: #858b98;
+}
+
+.search-page .search-result-availability.is-unavailable > span:first-child {
+  background: #a1a5af;
+}
+
+.search-page .pagination-ellipsis {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  color: #8a909d;
+}
+
+@keyframes search-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .search-page .search-result-body {
+    padding: 11px 10px 13px;
+  }
+
+  .search-page .search-result-name {
+    font-size: 12px;
+  }
+
+  .search-page .search-result-price {
+    font-size: 13px;
+  }
+
+  .search-page .search-result-description {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-page .search-result-card {
+    animation: none;
+  }
+}
+```
