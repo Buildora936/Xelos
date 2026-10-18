@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Découvrez les collections XELOS : des sélections de produits organisées autour de vos envies.">
+  <title>Collections | XELOS</title>
+
+  <link rel="stylesheet" href="css/core/variables.css">
+  <link rel="stylesheet" href="css/core/reset.css">
+  <link rel="stylesheet" href="css/core/typography.css">
+  <link rel="stylesheet" href="css/core/layout.css">
+  <link rel="stylesheet" href="css/core/utilities.css">
+  <link rel="stylesheet" href="css/components/buttons.css">
+  <link rel="stylesheet" href="css/components/forms.css">
+  <link rel="stylesheet" href="css/components/header.css">
+  <link rel="stylesheet" href="css/components/footer.css">
+  <link rel="stylesheet" href="css/components/product-card.css">
+  <link rel="stylesheet" href="css/pages/collections.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <script type="module" src="js/collections.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Aller au contenu</a>
+
+  <div class="collections-topline">
+    <span>XELOS / CURATED DISCOVERY</span>
+    <span>DES ESSENTIELS. DE NOUVELLES PERSPECTIVES.</span>
+  </div>
+
+  <header class="site-header">
+    <div class="header-main">
+      <button class="mobile-menu-button" id="mobile-menu-button"
+        type="button" aria-label="Ouvrir le menu" aria-expanded="false"
+        aria-controls="primary-navigation">
+        <span></span><span></span>
+      </button>
+
+      <a class="brand" href="index.html" aria-label="XELOS, accueil">
+        <!-- Remplacer par le chemin réel du logo si son nom diffère. -->
+        <img src="assets/logos/xelos-logo.png" alt="XELOS">
+      </a>
+
+      <nav class="primary-navigation" id="primary-navigation"
+        aria-label="Navigation principale">
+        <a href="shop.html">Boutique</a>
+        <a href="category.html">Catégories</a>
+        <a href="collections.html" class="is-active" aria-current="page">Collections</a>
+        <a href="shop.html?sort=newest">Nouveautés</a>
+      </nav>
+
+      <div class="header-actions">
+        <form class="header-search" id="header-search-form" role="search">
+          <label class="visually-hidden" for="header-search-input">Rechercher</label>
+          <input id="header-search-input" type="search" placeholder="Rechercher...">
+          <button type="submit" aria-label="Lancer la recherche">↗</button>
+        </form>
+
+        <a class="header-icon-link" href="account.html" aria-label="Mon compte">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="3.5"></circle>
+            <path d="M4.5 20c.7-4 3.1-6 7.5-6s6.8 2 7.5 6"></path>
+          </svg>
+        </a>
+
+        <a class="header-icon-link cart-link" href="cart.html" aria-label="Mon panier">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 4h2l2.1 11.2a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L21 8H6"></path>
+            <circle cx="10" cy="20" r="1"></circle>
+            <circle cx="18" cy="20" r="1"></circle>
+          </svg>
+          <span class="cart-count" id="cart-count" hidden>0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="collections-hero" aria-labelledby="collections-hero-title">
+      <div class="collections-hero-copy">
+        <p class="eyebrow"><span></span> The art of discovery</p>
+
+        <h1 id="collections-hero-title">
+          Pas seulement<br>
+          des produits.<br>
+          <span>Des univers.</span>
+        </h1>
+
+        <p class="collections-hero-description">
+          Des sélections pensées pour rapprocher vos envies
+          des produits qui méritent votre attention.
+        </p>
+
+        <div class="collections-hero-actions">
+          <a href="#featured-collections" class="button button-primary">
+            Découvrir les collections <span aria-hidden="true">↘</span>
+          </a>
+          <span class="collections-hero-note">EXPLOREZ À VOTRE RYTHME.</span>
+        </div>
+
+        <div class="collections-hero-index">
+          <span>XELOS®</span>
+          <span>01 — DISCOVER</span>
+        </div>
+      </div>
+
+      <div class="collections-hero-visual" aria-hidden="true">
+        <div class="hero-visual-grid"></div>
+        <div class="hero-visual-orbit orbit-a"></div>
+        <div class="hero-visual-orbit orbit-b"></div>
+        <div class="hero-visual-orbit orbit-c"></div>
+        <div class="hero-visual-disc">
+          <span class="hero-visual-x">X</span>
+          <span class="hero-visual-word">DISCOVER MORE</span>
+        </div>
+        <span class="hero-visual-number">01</span>
+        <span class="hero-visual-caption">A DIFFERENT POINT OF VIEW</span>
+      </div>
+    </section>
+
+    <section class="collections-intro content-width">
+      <div class="intro-marker">
+        <span class="intro-marker-line"></span>
+        <span>NOTRE APPROCHE</span>
+      </div>
+      <p>
+        Chaque collection est une nouvelle façon de découvrir
+        <span>ce qui vous correspond.</span>
+      </p>
+      <span class="intro-index">X / 01</span>
+    </section>
+
+    <section class="featured-collections content-width"
+      id="featured-collections" aria-labelledby="featured-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow"><span></span> Curated for you</p>
+          <h2 id="featured-heading">Les collections<span>.</span></h2>
+          <p class="section-description">
+            Parcourez nos sélections et trouvez votre prochain essentiel.
+          </p>
+        </div>
+
+        <div class="collection-count">
+          <span id="collection-count">—</span>
+          <span>COLLECTIONS</span>
+        </div>
+      </div>
+
+      <div class="collection-toolbar">
+        <div class="collection-tabs" id="collection-tabs" aria-label="Filtrer les collections">
+          <button type="button" class="collection-tab is-active"
+            data-collection-filter="all" aria-pressed="true">Toutes</button>
+          <button type="button" class="collection-tab"
+            data-collection-filter="featured" aria-pressed="false">À la une</button>
+          <button type="button" class="collection-tab"
+            data-collection-filter="new" aria-pressed="false">Nouveautés</button>
+        </div>
+        <span class="collection-toolbar-note">SÉLECTIONS XELOS <span aria-hidden="true">↗</span></span>
+      </div>
+
+      <div class="collections-grid" id="collections-grid" aria-live="polite">
+        <div class="collections-empty-state">
+          <span class="empty-state-x" aria-hidden="true">X.</span>
+          <h3>Les collections arrivent ici.</h3>
+          <p>Les collections du catalogue s'afficheront après le chargement des données.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="collections-manifesto">
+      <div class="manifesto-inner content-width">
+        <div class="manifesto-left">
+          <p class="eyebrow"><span></span> The XELOS point of view</p>
+          <h2>Votre style.<br>Votre rythme.<br><span>Votre découverte.</span></h2>
+        </div>
+        <div class="manifesto-right">
+          <div class="manifesto-symbol" aria-hidden="true">
+            <span>X</span>
+            <i></i>
+          </div>
+          <p>
+            Explorez différentes sélections, comparez les options et
+            trouvez les produits qui correspondent à vos priorités.
+          </p>
+          <a href="shop.html" class="manifesto-link">
+            Explorer tous les produits <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <span class="manifesto-watermark" aria-hidden="true">X.</span>
+      </div>
+    </section>
+
+    <section class="collection-discover content-width">
+      <div class="discover-heading">
+        <div>
+          <p class="eyebrow"><span></span> Continue exploring</p>
+          <h2>Une autre découverte<span> vous attend.</span></h2>
+        </div>
+        <a href="category.html" class="text-link">
+          Explorer les catégories <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <a class="discover-banner" href="shop.html">
+        <div class="discover-banner-copy">
+          <span class="discover-banner-label">YOUR NEXT FIND</span>
+          <h3>Le bon produit.<br>Au bon moment.</h3>
+          <span class="discover-banner-cta">Explorer la boutique <span aria-hidden="true">↗</span></span>
+        </div>
+        <div class="discover-banner-art" aria-hidden="true">
+          <div class="discover-banner-ring"></div>
+          <span>X</span>
+          <small>XELOS / DISCOVERY</small>
+        </div>
+      </a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-main">
+      <div class="footer-brand-column">
+        <a class="footer-brand" href="index.html">
+          <img src="assets/logos/xelos-logo.png" alt="XELOS">
+        </a>
+        <p>Des essentiels choisis pour votre quotidien.</p>
+      </div>
+
+      <div class="footer-link-column">
+        <h2>Explorer</h2>
+        <a href="shop.html">Boutique</a>
+        <a href="category.html">Catégories</a>
+        <a href="collections.html">Collections</a>
+      </div>
+
+      <div class="footer-link-column">
+        <h2>Assistance</h2>
+        <a href="contact.html">Nous contacter</a>
+        <a href="faq.html">FAQ</a>
+        <a href="shipping-policy.html">Livraison</a>
+        <a href="returns-policy.html">Retours</a>
+      </div>
+
+      <div class="footer-link-column">
+        <h2>Informations</h2>
+        <a href="privacy-policy.html">Confidentialité</a>
+        <a href="terms.html">Conditions d'utilisation</a>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© <span id="current-year"></span> XELOS. Tous droits réservés.</p>
+      <p>DESIGNED TO DISCOVER <span aria-hidden="true">↗</span></p>
+    </div>
+  </footer>
+</body>
+</html>
