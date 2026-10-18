@@ -1,0 +1,323 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Découvrez les détails, le prix et les caractéristiques de ce produit sur XELOS.">
+  <title>Produit | XELOS</title>
+
+  <link rel="icon" href="assets/logos/xelos-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+  <link rel="stylesheet" href="css/core/variables.css">
+  <link rel="stylesheet" href="css/core/reset.css">
+  <link rel="stylesheet" href="css/core/typography.css">
+  <link rel="stylesheet" href="css/core/layout.css">
+  <link rel="stylesheet" href="css/core/utilities.css">
+  <link rel="stylesheet" href="css/components/buttons.css">
+  <link rel="stylesheet" href="css/components/forms.css">
+  <link rel="stylesheet" href="css/components/header.css">
+  <link rel="stylesheet" href="css/components/footer.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/pages/product.css">
+  <script type="module" src="js/product.js"></script>
+</head>
+
+<body class="product-page">
+  <div class="product-announcement">
+    <span>XELOS</span>
+    <span>Découvrez les produits qui correspondent à votre style.</span>
+    <a href="shop.html">Explorer la boutique <i class="fa-solid fa-arrow-right"></i></a>
+  </div>
+
+  <header class="product-header">
+    <div class="product-header-inner">
+      <button class="product-menu-toggle" id="mobileMenuToggle"
+        type="button" aria-label="Ouvrir le menu" aria-expanded="false">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <a class="product-brand" href="index.html" aria-label="XELOS, accueil">
+        <img src="assets/logos/xelos-logo.png" alt="XELOS">
+      </a>
+
+      <nav class="product-navigation" id="mainNavigation" aria-label="Navigation principale">
+        <a href="shop.html">Boutique</a>
+        <a href="category.html">Catégories</a>
+        <a href="collections.html">Collections</a>
+      </nav>
+
+      <form class="product-header-search" id="headerSearchForm" action="search.html">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input type="search" name="q" id="headerSearchInput"
+          placeholder="Rechercher un produit..." aria-label="Rechercher un produit">
+        <button type="submit" aria-label="Lancer la recherche">
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+
+      <div class="product-header-actions">
+        <a href="account.html" aria-label="Mon compte">
+          <i class="fa-regular fa-user"></i>
+        </a>
+        <a href="wishlist.html" aria-label="Mes favoris">
+          <i class="fa-regular fa-heart"></i>
+        </a>
+        <a href="cart.html" class="product-header-cart" aria-label="Mon panier">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <span>Panier</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <nav class="product-breadcrumb" aria-label="Fil d'Ariane">
+      <a href="index.html">Accueil</a>
+      <i class="fa-solid fa-chevron-right"></i>
+      <a href="shop.html">Boutique</a>
+      <i class="fa-solid fa-chevron-right"></i>
+      <a href="category.html" id="productCategoryLink">Catégorie</a>
+      <i class="fa-solid fa-chevron-right"></i>
+      <span id="breadcrumbProduct">Produit</span>
+    </nav>
+
+    <section class="product-main-shell" id="productMain" aria-live="polite">
+      <div class="product-loading" id="productLoading">
+        <span class="product-spinner"></span>
+        <p>Préparation de votre fiche produit…</p>
+      </div>
+
+      <div class="product-unavailable" id="productUnavailable" hidden>
+        <div class="product-unavailable-icon">
+          <i class="fa-solid fa-box-open"></i>
+        </div>
+        <p class="product-eyebrow">XELOS / CATALOGUE</p>
+        <h1 id="unavailableTitle">Produit indisponible</h1>
+        <p id="unavailableMessage">
+          Les données de ce produit ne sont pas disponibles pour le moment.
+        </p>
+        <a href="shop.html" class="product-primary-button">
+          Explorer la boutique <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="product-layout" id="productLayout" hidden>
+        <section class="product-gallery" aria-label="Galerie du produit">
+          <div class="product-gallery-main" id="productGalleryMain">
+            <div class="product-gallery-badges" id="productGalleryBadges"></div>
+
+            <button class="gallery-zoom-button" id="galleryZoom"
+              type="button" aria-label="Agrandir l'image">
+              <i class="fa-solid fa-expand"></i>
+            </button>
+
+            <img id="productMainImage" src="" alt="">
+            <div class="product-image-placeholder" id="productImagePlaceholder" hidden>
+              <i class="fa-regular fa-image"></i>
+              <span>Image non disponible</span>
+            </div>
+          </div>
+
+          <div class="product-gallery-thumbnails" id="productThumbnails"
+            aria-label="Choisir une image du produit"></div>
+
+          <div class="product-gallery-caption">
+            <i class="fa-regular fa-images"></i>
+            <span id="galleryCount">Galerie du produit</span>
+          </div>
+        </section>
+
+        <section class="product-purchase-panel" aria-label="Informations d'achat">
+          <div class="product-category-line">
+            <span class="product-category-pill" id="productCategory">XELOS</span>
+            <span class="product-stock-indicator" id="productStock">
+              <span></span>
+              <span id="productStockText">Disponibilité à confirmer</span>
+            </span>
+          </div>
+
+          <h1 class="product-title" id="productTitle">Produit</h1>
+
+          <div class="product-rating-row" id="productRatingRow" hidden>
+            <div class="product-rating-stars" id="productRatingStars"></div>
+            <span id="productRatingValue"></span>
+            <span class="product-rating-separator"></span>
+            <a href="#productReviews" id="productReviewLink"></a>
+          </div>
+
+          <p class="product-subtitle" id="productSubtitle" hidden></p>
+
+          <div class="product-price-block">
+            <div class="product-price-line">
+              <span class="product-current-price" id="productPrice"></span>
+              <span class="product-old-price" id="productOldPrice" hidden></span>
+              <span class="product-discount-badge" id="productDiscount" hidden></span>
+            </div>
+            <p class="product-price-note" id="productPriceNote">
+              Le prix affiché correspond aux informations disponibles sur ce produit.
+            </p>
+          </div>
+
+          <div class="product-short-description" id="productDescription"></div>
+
+          <div class="product-purchase-divider"></div>
+
+          <div class="product-quantity-row">
+            <label for="productQuantity">Quantité</label>
+            <div class="product-quantity-control">
+              <button type="button" id="quantityMinus" aria-label="Diminuer la quantité">
+                <i class="fa-solid fa-minus"></i>
+              </button>
+              <input id="productQuantity" type="number" min="1" max="99" value="1"
+                inputmode="numeric" aria-label="Quantité">
+              <button type="button" id="quantityPlus" aria-label="Augmenter la quantité">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="product-purchase-actions">
+            <button type="button" class="product-primary-button"
+              id="addToCartButton" disabled>
+              <i class="fa-solid fa-bag-shopping"></i>
+              <span>Ajouter au panier</span>
+            </button>
+
+            <button type="button" class="product-wishlist-button" id="wishlistButton"
+              aria-label="Ajouter aux favoris" aria-pressed="false">
+              <i class="fa-regular fa-heart"></i>
+            </button>
+          </div>
+
+          <p class="product-action-note" id="productActionNote" aria-live="polite"></p>
+
+          <div class="product-buy-information">
+            <div class="product-information-item">
+              <span class="product-information-icon">
+                <i class="fa-solid fa-truck-fast"></i>
+              </span>
+              <div>
+                <strong>Livraison</strong>
+                <p>Options et frais indiqués lors de la commande.</p>
+              </div>
+            </div>
+
+            <div class="product-information-item">
+              <span class="product-information-icon">
+                <i class="fa-solid fa-rotate-left"></i>
+              </span>
+              <div>
+                <strong>Retours</strong>
+                <p><a href="returns-policy.html">Consulter les conditions de retour</a></p>
+              </div>
+            </div>
+
+            <div class="product-information-item">
+              <span class="product-information-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+              </span>
+              <div>
+                <strong>Informations transparentes</strong>
+                <p>Prix et disponibilité présentés selon les données reçues.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-reference" id="productReference" hidden>
+            Référence : <span id="productSku"></span>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="product-detail-section" id="productDetails" hidden>
+      <div class="product-section-heading">
+        <div>
+          <p class="product-eyebrow">EN SAVOIR PLUS</p>
+          <h2>Le produit en détail.</h2>
+        </div>
+        <p>Les informations disponibles, réunies au même endroit.</p>
+      </div>
+
+      <div class="product-detail-grid">
+        <article class="product-detail-card product-detail-description-card">
+          <span class="product-detail-number">01</span>
+          <div>
+            <h3>Description</h3>
+            <div id="productFullDescription"></div>
+          </div>
+        </article>
+
+        <article class="product-detail-card">
+          <span class="product-detail-number">02</span>
+          <div>
+            <h3>Caractéristiques</h3>
+            <dl class="product-features-list" id="productFeatures"></dl>
+            <p class="product-no-features" id="productNoFeatures" hidden>
+              Les caractéristiques détaillées ne sont pas encore disponibles.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="product-recommendations" id="productRecommendations" hidden>
+      <div class="product-section-heading">
+        <div>
+          <p class="product-eyebrow">À DÉCOUVRIR AUSSI</p>
+          <h2>Vous pourriez aimer.</h2>
+        </div>
+        <a href="shop.html" class="product-text-link">
+          Voir la boutique <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+      <div class="product-recommendation-grid" id="similarProducts"></div>
+    </section>
+
+    <section class="product-review-section" id="productReviews" hidden>
+      <div class="product-section-heading">
+        <div>
+          <p class="product-eyebrow">AVIS CLIENTS</p>
+          <h2>Ce que les clients en pensent.</h2>
+        </div>
+      </div>
+      <div class="product-review-summary" id="productReviewSummary"></div>
+      <p class="product-review-note">
+        Les avis détaillés seront affichés lorsque les données d'avis seront connectées.
+      </p>
+    </section>
+  </main>
+
+  <div class="product-image-lightbox" id="productLightbox" hidden
+    role="dialog" aria-modal="true" aria-label="Image agrandie du produit">
+    <button type="button" id="closeLightbox" aria-label="Fermer l'image agrandie">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <img id="lightboxImage" src="" alt="">
+  </div>
+
+  <div class="product-toast" id="productToast" role="status" aria-live="polite" hidden></div>
+
+  <footer class="product-footer">
+    <div class="product-footer-inner">
+      <a href="index.html" class="product-footer-brand">
+        <img src="assets/logos/xelos-logo.png" alt="XELOS">
+      </a>
+      <p>Une expérience d'achat pensée dans les moindres détails.</p>
+      <div class="product-footer-links">
+        <a href="contact.html">Contact</a>
+        <a href="shipping-policy.html">Livraison</a>
+        <a href="returns-policy.html">Retours</a>
+        <a href="privacy-policy.html">Confidentialité</a>
+      </div>
+      <span>© <span id="footerYear"></span> XELOS</span>
+    </div>
+  </footer>
+</body>
+</html>
