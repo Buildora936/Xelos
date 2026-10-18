@@ -1,1 +1,119 @@
 
+/* =========================================================
+   XELOS — PAGINATION
+   Fichier : css/components/pagination.css
+   ========================================================= */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-block: 36px;
+  gap: 8px;
+}
+
+.pagination-button {
+  display: inline-flex;
+  min-width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 12px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 10px;
+  background: var(--color-white, #ffffff);
+  color: var(--color-text, #111827);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.pagination-button:hover:not(:disabled):not([aria-current="page"]) {
+  border-color: var(--color-primary, #2563eb);
+  background: #eff6ff;
+  color: var(--color-primary, #2563eb);
+}
+
+.pagination-button[aria-current="page"] {
+  border-color: var(--color-primary, #2563eb);
+  background: var(--color-primary, #2563eb);
+  color: #ffffff;
+  cursor: default;
+}
+
+.pagination-button:disabled,
+.pagination-button[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pagination-button svg,
+.pagination-button i {
+  width: 17px;
+  height: 17px;
+  font-size: 0.9rem;
+}
+
+.pagination-ellipsis {
+  display: inline-flex;
+  min-width: 24px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted, #6b7280);
+  user-select: none;
+}
+
+.pagination-info {
+  margin: 16px 0 0;
+  color: var(--color-text-secondary, #4b5563);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.pagination:focus-within {
+  scroll-margin-block: 24px;
+}
+
+.pagination-button:focus-visible {
+  outline: 3px solid rgb(37 99 235 / 35%);
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 5px;
+    margin-block: 28px;
+  }
+
+  .pagination-button {
+    min-width: 36px;
+    height: 38px;
+    padding-inline: 9px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+  }
+
+  .pagination-ellipsis {
+    min-width: 16px;
+    height: 38px;
+  }
+
+  .pagination-button--first,
+  .pagination-button--last {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagination-button {
+    transition: none;
+  }
+}
