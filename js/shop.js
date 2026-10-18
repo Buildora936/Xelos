@@ -1,15 +1,21 @@
 
-/* =========================================================
-   XELOS — SHOP / DAY 9
-   Catalogue UI, filters, sorting and pagination.
-   Product data will be supplied through the centralized
-   data layer after the real database schema is verified.
-   ========================================================= */
+/**
+ * XELOS — Shop / Catalogue
+ * File: js/shop.js
+ *
+ * Flow: shop.js -> data.js -> Supabase
+ * Public catalogue: products, product_media, product_prices
+ * No demo products, invented tables or fabricated prices.
+ */
+
+import { selectRows } from "./data.js";
 
 const Shop = (() => {
   "use strict";
 
   const PAGE_SIZE = 12;
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const byId = (id) => document.getElementById(id);
 
   const state = {
     products: [],
@@ -30,194 +36,115 @@ const Shop = (() => {
 
   const elements = {};
 
-  function getElement(id) {
-    return document.getElementById(id);
-  }
+  const elementIds = [
+    "menuToggle",
+    "primaryNavigation",
+    "headerSearch",
+    "headerSearchInput",
+    "catalogSearch",
+    "filterToggle",
+    "catalogFilters",
+    "clearFilters",
+    "activeFilterCount",
+    "sortSelect",
+    "viewToggle",
+    "categoryOptions",
+    "minPrice",
+    "maxPrice",
+    "inStockOnly",
+    "applyFilters",
+    "resultsSummary",
+    "activeFilters",
+    "productGrid",
+    "catalogState",
+    "stateEyebrow",
+    "stateTitle",
+    "stateMessage",
+    "stateReset",
+    "catalogStatus",
+    "catalogPagination",
+    "previousPage",
+    "nextPage",
+    "paginationPages",
+    "currentYear"
+  ];
 
   function cacheElements() {
-    [
-      "menuToggle",
-      "primaryNavigation",
-      "headerSearch",
-      "headerSearchInput",
-      "catalogSearch",
-      "filterToggle",
-      "catalogFilters",
-      "clearFilters",
-      "activeFilterCount",
-      "sortSelect",
-      "viewToggle",
-      "categoryOptions",
-      "minPrice",
-      "maxPrice",
-      "inStockOnly",
-      "applyFilters",
-      "resultsSummary",
-      "activeFilters",
-      "productGrid",
-      "catalogState",
-      "stateEyebrow",
-      "stateTitle",
-      "stateMessage",
-      "stateReset",
-      "catalogStatus",
-      "catalogPagination",
-      "previousPage",
-      "nextPage",
-      "paginationPages",
-      "currentYear"
-    ].forEach(id => {
-      elements[id] = getElement(id);
+    elementIds.forEach((id) => {
+      elements[id] = byId(id);
     });
   }
 
   function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, character => {
-      const entities = {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      };
-
-      return entities[character];
-    });
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[character]);
   }
 
   function safeURL(value) {
-    if (typeof value !== "string" || !value.trim()) {
-      return "";
-    }
+    if (typeof value !== "string" || !value.trim()) return "";
 
     try {
       const url = new URL(value, window.location.href);
 
-      if (!["http:", "https:"].includes(url.protocol)) {
-        return "";
-      }
-
-      return url.href;
+      return ["http:", "https:"].includes(url.protocol)
+        ? url.href
+        : "";
     } catch {
       return "";
     }
   }
 
-  function formatPrice(value, currency) {
-    const amount = Number(value);
+  function productURL(product) {
+    const url = new URL("product.html", window.location.href);
+    url.searchParams.set("id", String(product.id));
+    return `${url.pathname}${url.search}`;
+  }
 
-    if (!Number.isFinite(amount)) {
-      return "";
-    }
+  function formatPrice(amount, currency = "USD") {
+    const value = Number(amount);
+
+    if (!Number.isFinite(value)) return "";
 
     try {
-      return new Intl.NumberFormat(
-        document.documentElement.lang || "fr",
-        {
-          style: "currency",
-          currency: currency || "USD"
-        }
-      ).format(amount);
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: String(currency || "USD").toUpperCase()
+      }).format(value);
     } catch {
-      return `${amount.toFixed(2)} ${currency || "USD"}`;
+      return `${value.toFixed(2)} ${currency || "USD"}`;
     }
   }
 
-  /*
-   * Expected normalized product object:
-   * {
-   *   id, name, slug, description, image,
-   *   categoryName, price, compareAtPrice,
-   *   currency, available, rating, reviewCount,
-   *   popularity, createdAt
-   * }
-   *
-   * These are frontend object properties, NOT assertions
-   * about the names of database columns.
-   * The data layer must map the actual schema to this shape.
-   */
+  function showState(title, message, type = "empty") {
+    if (!elements.catalogState) return;
 
-  function normalizeProduct(product) {
-    if (!product || typeof product !== "object") {
-      return null;
+    elements.catalogState.classList.add("is-visible");
+
+    if (elements.stateTitle) {
+      elements.stateTitle.textContent = title;
     }
 
-    const id = product.id;
-
-    if (id === undefined || id === null || String(id).trim() === "") {
-      return null;
+    if (elements.stateMessage) {
+      elements.stateMessage.textContent = message;
     }
 
-    const name = String(product.name ?? "").trim();
-
-    if (!name) {
-      return null;
+    if (elements.stateEyebrow) {
+      elements.stateEyebrow.textContent =
+        type === "error" ? "CATALOGUE CONNECTION" : "XELOS CATALOGUE";
     }
 
-    const price = Number(product.price);
-
-    if (!Number.isFinite(price) || price < 0) {
-      return null;
+    if (elements.stateReset) {
+      elements.stateReset.hidden = type === "error";
     }
-
-    const compareAtPrice =
-      product.compareAtPrice === null ||
-      product.compareAtPrice === undefined ||
-      product.compareAtPrice === ""
-        ? null
-        : Number(product.compareAtPrice);
-
-    const safeCompareAtPrice =
-      Number.isFinite(compareAtPrice) && compareAtPrice > price
-        ? compareAtPrice
-        : null;
-
-    return {
-      id: String(id),
-      name,
-      slug: String(product.slug ?? id),
-      description: String(product.description ?? ""),
-      image: safeURL(product.image),
-      categoryName: String(product.categoryName ?? "").trim(),
-      price,
-      compareAtPrice: safeCompareAtPrice,
-      currency: String(product.currency || "USD").toUpperCase(),
-      available: product.available === true,
-      rating: Number.isFinite(Number(product.rating))
-        ? Number(product.rating)
-        : null,
-      reviewCount: Number.isFinite(Number(product.reviewCount))
-        ? Math.max(0, Number(product.reviewCount))
-        : 0,
-      popularity: Number.isFinite(Number(product.popularity))
-        ? Number(product.popularity)
-        : 0,
-      createdAt: product.createdAt
-        ? Date.parse(product.createdAt) || 0
-        : 0
-    };
   }
 
-  function setProducts(products) {
-    if (!Array.isArray(products)) {
-      setError(
-        "Les données reçues ne sont pas au format attendu.",
-        "Format de données invalide"
-      );
-      return;
-    }
-
-    state.products = products
-      .map(normalizeProduct)
-      .filter(Boolean);
-
-    state.loaded = true;
-    state.loading = false;
-    state.error = null;
-    state.page = 1;
-
-    renderCategories();
-    render();
+  function hideState() {
+    elements.catalogState?.classList.remove("is-visible");
   }
 
   function setLoading() {
@@ -225,137 +152,313 @@ const Shop = (() => {
     state.loaded = false;
     state.error = null;
 
-    elements.productGrid.innerHTML = Array.from(
-      { length: 6 },
-      () => `
-        <div class="product-skeleton" aria-hidden="true">
-          <div class="product-skeleton__image product-skeleton__line"></div>
-          <div class="product-skeleton__body">
-            <div class="product-skeleton__line product-skeleton__line--short"></div>
-            <div class="product-skeleton__line"></div>
-            <div class="product-skeleton__line product-skeleton__line--medium"></div>
+    if (elements.productGrid) {
+      elements.productGrid.hidden = false;
+      elements.productGrid.setAttribute("aria-busy", "true");
+      elements.productGrid.innerHTML = Array.from(
+        { length: 6 },
+        () => `
+          <div class="product-skeleton" aria-hidden="true">
+            <div class="product-skeleton__image product-skeleton__line"></div>
+            <div class="product-skeleton__body">
+              <div class="product-skeleton__line product-skeleton__line--short"></div>
+              <div class="product-skeleton__line"></div>
+              <div class="product-skeleton__line product-skeleton__line--medium"></div>
+            </div>
           </div>
-        </div>
-      `
-    ).join("");
+        `
+      ).join("");
+    }
 
-    elements.productGrid.hidden = false;
-    elements.productGrid.setAttribute("aria-busy", "true");
-    elements.catalogState.classList.remove("is-visible");
-    elements.catalogStatus.textContent = "Chargement…";
-    elements.resultsSummary.textContent = "Chargement des produits…";
-    elements.catalogPagination.hidden = true;
+    hideState();
+
+    if (elements.catalogStatus) {
+      elements.catalogStatus.textContent = "Loading catalogue…";
+    }
+
+    if (elements.resultsSummary) {
+      elements.resultsSummary.textContent = "Loading products…";
+    }
+
+    if (elements.catalogPagination) {
+      elements.catalogPagination.hidden = true;
+    }
   }
 
-  function setError(message, title = "Impossible de charger le catalogue") {
+  function setError(message) {
     state.loading = false;
     state.loaded = false;
     state.error = message;
 
-    elements.productGrid.innerHTML = "";
-    elements.productGrid.hidden = true;
-    elements.productGrid.setAttribute("aria-busy", "false");
+    if (elements.productGrid) {
+      elements.productGrid.replaceChildren();
+      elements.productGrid.hidden = true;
+      elements.productGrid.setAttribute("aria-busy", "false");
+    }
 
-    showState(title, message, "error");
+    showState("Catalogue unavailable", message, "error");
 
-    elements.catalogStatus.textContent = "Erreur de chargement";
-    elements.resultsSummary.textContent = "Le catalogue est momentanément indisponible.";
-    elements.catalogPagination.hidden = true;
-  }
+    if (elements.catalogStatus) {
+      elements.catalogStatus.textContent = "Loading error";
+    }
 
-  function renderCategories() {
-    const categories = [
-      ...new Set(
-        state.products
-          .map(product => product.categoryName)
-          .filter(Boolean)
-      )
-    ].sort((a, b) => a.localeCompare(b, "fr"));
+    if (elements.resultsSummary) {
+      elements.resultsSummary.textContent =
+        "The catalogue is temporarily unavailable.";
+    }
 
-    const currentCategory = state.category;
-
-    elements.categoryOptions.innerHTML = categories.length
-      ? categories.map(category => `
-          <label class="filter-option">
-            <input
-              type="radio"
-              name="category"
-              value="${escapeHTML(category)}"
-              ${currentCategory === category ? "checked" : ""}
-            >
-            <span>${escapeHTML(category)}</span>
-          </label>
-        `).join("")
-      : `<p class="filter-hint">Aucune catégorie disponible pour le moment.</p>`;
-
-    elements.categoryOptions
-      .querySelectorAll('input[name="category"]')
-      .forEach(input => {
-        input.addEventListener("change", () => {
-          state.category = input.value;
-          state.page = 1;
-          render();
-        });
-      });
-
-    const allCategoriesInput = document.querySelector(
-      'input[name="category"][value=""]'
-    );
-
-    if (allCategoriesInput) {
-      allCategoriesInput.checked = !currentCategory;
+    if (elements.catalogPagination) {
+      elements.catalogPagination.hidden = true;
     }
   }
 
-  function readFiltersFromForm() {
-    state.search = elements.catalogSearch.value.trim();
-    state.minPrice = elements.minPrice.value;
-    state.maxPrice = elements.maxPrice.value;
-    state.inStockOnly = elements.inStockOnly.checked;
+  function getProductMedia(mediaRows, productId) {
+    return mediaRows
+      .filter((media) =>
+        media.product_id === productId &&
+        media.is_active === true &&
+        media.media_type === "image"
+      )
+      .sort((a, b) => {
+        if (Boolean(a.is_primary) !== Boolean(b.is_primary)) {
+          return a.is_primary ? -1 : 1;
+        }
 
-    const selectedCategory = document.querySelector(
-      'input[name="category"]:checked'
+        return Number(a.position ?? 0) - Number(b.position ?? 0);
+      });
+  }
+
+  function getCurrentPrices(priceRows, productId) {
+    const now = Date.now();
+
+    return priceRows.filter((price) => {
+      if (price.product_id !== productId || price.is_active !== true) {
+        return false;
+      }
+
+      const startsAt = price.starts_at
+        ? Date.parse(price.starts_at)
+        : 0;
+
+      const endsAt = price.ends_at
+        ? Date.parse(price.ends_at)
+        : null;
+
+      if (Number.isFinite(startsAt) && startsAt > now) return false;
+      if (endsAt !== null && Number.isFinite(endsAt) && endsAt <= now) {
+        return false;
+      }
+
+      return ["regular", "sale", "compare_at"].includes(price.price_type);
+    });
+  }
+
+  function normalizeProduct(product, mediaRows, priceRows) {
+    if (!product || product.status !== "active" ||
+        product.visibility !== "public") {
+      return null;
+    }
+
+    if (product.id == null || !String(product.name ?? "").trim()) {
+      return null;
+    }
+
+    const media = getProductMedia(mediaRows, product.id);
+    const validMedia = media.find((item) =>
+      safeURL(item.url) || safeURL(item.thumbnail_url)
     );
 
-    state.category = selectedCategory?.value || "";
-    state.sort = elements.sortSelect.value;
+    const prices = getCurrentPrices(priceRows, product.id);
+
+    const regularPrices = prices
+      .filter((item) => item.price_type === "regular")
+      .sort((a, b) => Date.parse(b.starts_at || 0) - Date.parse(a.starts_at || 0));
+
+    const salePrices = prices
+      .filter((item) => item.price_type === "sale")
+      .sort((a, b) => Date.parse(b.starts_at || 0) - Date.parse(a.starts_at || 0));
+
+    const comparePrices = prices
+      .filter((item) => item.price_type === "compare_at")
+      .sort((a, b) => Date.parse(b.starts_at || 0) - Date.parse(a.starts_at || 0));
+
+    const regular = regularPrices[0];
+    const sale = salePrices[0];
+    const compare = comparePrices[0];
+
+    // A sale price is used only when a valid regular price also exists.
+    const useSale = Boolean(
+      sale &&
+      regular &&
+      Number(sale.amount) >= 0 &&
+      Number(sale.amount) < Number(regular.amount)
+    );
+
+    const selectedPrice = useSale ? sale : (regular || sale);
+
+    if (!selectedPrice || !Number.isFinite(Number(selectedPrice.amount))) {
+      // Never invent or display a fabricated price.
+      return null;
+    }
+
+    const amount = Number(selectedPrice.amount);
+    const compareAmount = useSale
+      ? Number(regular.amount)
+      : Number(compare?.amount);
+
+    const compareAtPrice =
+      Number.isFinite(compareAmount) && compareAmount > amount
+        ? compareAmount
+        : null;
+
+    const image = validMedia
+      ? safeURL(validMedia.url) || safeURL(validMedia.thumbnail_url)
+      : "";
+
+    return {
+      id: String(product.id),
+      name: String(product.name).trim(),
+      slug: String(product.slug || product.id),
+      description: String(product.short_description || product.description || ""),
+      image,
+      categoryName: "",
+      price: amount,
+      compareAtPrice,
+      currency: String(selectedPrice.currency_code || "USD").toUpperCase(),
+      // Inventory schema has not been confirmed; do not fabricate stock status.
+      available: null,
+      rating: null,
+      reviewCount: 0,
+      popularity: product.is_best_seller === true ? 2 :
+        product.is_featured === true ? 1 : 0,
+      isNewArrival: product.is_new_arrival === true,
+      isBestSeller: product.is_best_seller === true,
+      createdAt: product.created_at ? Date.parse(product.created_at) || 0 : 0
+    };
+  }
+
+  async function loadCatalogue() {
+    setLoading();
+
+    try {
+      // RLS restricts public reads to active, public products.
+      // These queries intentionally do not depend on unsupported filter syntax.
+      const [productRows, mediaRows, priceRows] = await Promise.all([
+        selectRows("products", {
+          limit: 1000,
+          orderBy: "created_at",
+          ascending: false
+        }),
+        selectRows("product_media", {
+          limit: 5000,
+          orderBy: "position",
+          ascending: true
+        }),
+        selectRows("product_prices", {
+          limit: 5000,
+          orderBy: "starts_at",
+          ascending: false
+        })
+      ]);
+
+      if (!Array.isArray(productRows)) {
+        throw new Error("The products query did not return a valid list.");
+      }
+
+      const media = Array.isArray(mediaRows) ? mediaRows : [];
+      const prices = Array.isArray(priceRows) ? priceRows : [];
+
+      state.products = productRows
+        .map((product) => normalizeProduct(product, media, prices))
+        .filter(Boolean);
+
+      state.loaded = true;
+      state.loading = false;
+      state.error = null;
+      state.page = 1;
+
+      renderCategories();
+      render();
+    } catch (error) {
+      console.error("XELOS shop: catalogue loading failed.", {
+        code: error?.code ?? null,
+        message: error?.message ?? String(error),
+        details: error?.details ?? null,
+        hint: error?.hint ?? null
+      });
+
+      let message =
+        "The catalogue could not be loaded. Check the browser console for the Supabase error.";
+
+      if (error?.code === "42501") {
+        message =
+          "Public read access is blocked. Check the SELECT RLS policies for products, product_media and product_prices.";
+      } else if (
+        error?.code === "PGRST205" ||
+        error?.code === "42P01"
+      ) {
+        message =
+          "Supabase could not find a required catalogue table. Check the active project and exposed schema.";
+      }
+
+      setError(message);
+    }
+  }
+
+  function renderCategories() {
+    if (!elements.categoryOptions) return;
+
+    // No category relation has been confirmed for this page yet.
+    elements.categoryOptions.innerHTML = `
+      <p class="filter-hint">
+        Category filtering will be available when the catalogue's
+        category relationship is connected.
+      </p>
+    `;
+  }
+
+  function readFiltersFromForm() {
+    if (elements.catalogSearch) {
+      state.search = elements.catalogSearch.value.trim();
+    }
+
+    if (elements.minPrice) state.minPrice = elements.minPrice.value;
+    if (elements.maxPrice) state.maxPrice = elements.maxPrice.value;
+
+    if (elements.inStockOnly) {
+      state.inStockOnly = elements.inStockOnly.checked;
+    }
+
+    if (elements.sortSelect) state.sort = elements.sortSelect.value;
+
     state.page = 1;
   }
 
   function getFilteredProducts() {
-    const query = state.search.toLocaleLowerCase("fr");
-
+    const query = state.search.toLocaleLowerCase("en-US");
     const min = state.minPrice === "" ? null : Number(state.minPrice);
     const max = state.maxPrice === "" ? null : Number(state.maxPrice);
 
-    let products = state.products.filter(product => {
+    let products = state.products.filter((product) => {
       if (query) {
         const searchableText = [
           product.name,
           product.description,
           product.categoryName
-        ].join(" ").toLocaleLowerCase("fr");
+        ].join(" ").toLocaleLowerCase("en-US");
 
-        if (!searchableText.includes(query)) {
-          return false;
-        }
+        if (!searchableText.includes(query)) return false;
       }
 
       if (state.category && product.categoryName !== state.category) {
         return false;
       }
 
-      if (min !== null && product.price < min) {
-        return false;
-      }
+      if (min !== null && product.price < min) return false;
+      if (max !== null && product.price > max) return false;
 
-      if (max !== null && product.price > max) {
-        return false;
-      }
-
-      if (state.inStockOnly && !product.available) {
-        return false;
-      }
+      // Do not claim a product is in stock without verified inventory data.
+      if (state.inStockOnly && product.available !== true) return false;
 
       return true;
     });
@@ -378,106 +481,90 @@ const Shop = (() => {
         break;
 
       case "name-asc":
-        products.sort((a, b) => a.name.localeCompare(b.name, "fr"));
+        products.sort((a, b) => a.name.localeCompare(b.name, "en"));
         break;
 
       default:
-        // Keep the order chosen by the data layer for recommendations.
-        break;
+        products.sort((a, b) =>
+          Number(b.isBestSeller) - Number(a.isBestSeller) ||
+          Number(b.isNewArrival) - Number(a.isNewArrival) ||
+          b.createdAt - a.createdAt
+        );
     }
 
     return products;
   }
 
   function createProductCard(product) {
-    const productURL = `product.html?slug=${encodeURIComponent(product.slug)}`;
-    const imageURL = product.image;
+    const url = productURL(product);
     const hasDiscount = product.compareAtPrice !== null;
-    const outOfStock = !product.available;
 
-    const badge = outOfStock
-      ? `<span class="shop-product-card__badge shop-product-card__badge--out">Indisponible</span>`
-      : hasDiscount
-        ? `<span class="shop-product-card__badge shop-product-card__badge--sale">OFFRE</span>`
-        : "";
-
-    const image = imageURL
+    const imageMarkup = product.image
       ? `
-        <a href="${productURL}" tabindex="-1" aria-hidden="true">
-          <img src="${escapeHTML(imageURL)}"
-               alt=""
-               loading="lazy"
-               decoding="async">
+        <a href="${url}" tabindex="-1" aria-hidden="true">
+          <img
+            src="${escapeHTML(product.image)}"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          >
         </a>
       `
       : `
-        <a href="${productURL}" tabindex="-1" aria-hidden="true">
+        <a href="${url}" tabindex="-1" aria-hidden="true">
           <div class="shop-product-card__placeholder">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-              <circle cx="8.5" cy="8.5" r="1.5"></circle>
-              <path d="m21 15-5-5L5 21"></path>
-            </svg>
+            <span aria-hidden="true">X</span>
           </div>
         </a>
       `;
 
-    const rating = product.rating !== null
-      ? `
-        <div class="shop-product-card__rating">
-          <span class="rating-star" aria-hidden="true">★</span>
-          <span>${escapeHTML(product.rating.toFixed(1))}</span>
-          <span>(${escapeHTML(product.reviewCount)})</span>
-        </div>
-      `
-      : "";
+    const badge = product.isNewArrival
+      ? `<span class="shop-product-card__badge">NEW</span>`
+      : hasDiscount
+        ? `<span class="shop-product-card__badge shop-product-card__badge--sale">SALE</span>`
+        : "";
 
     const description = product.description
-      ? `<p class="shop-product-card__description">${escapeHTML(product.description.slice(0, 110))}${product.description.length > 110 ? "…" : ""}</p>`
+      ? `<p class="shop-product-card__description">${escapeHTML(
+          product.description.slice(0, 110)
+        )}${product.description.length > 110 ? "…" : ""}</p>`
       : "";
-
-    const category = product.categoryName
-      ? `<p class="shop-product-card__category">${escapeHTML(product.categoryName)}</p>`
-      : "";
-
-    const availability = outOfStock
-      ? `<div class="shop-product-card__availability is-unavailable">Indisponible</div>`
-      : `<div class="shop-product-card__availability">Disponible</div>`;
 
     return `
       <article class="shop-product-card" data-product-id="${escapeHTML(product.id)}">
         <div class="shop-product-card__media">
-          ${image}
+          ${imageMarkup}
           ${badge}
         </div>
 
         <div class="shop-product-card__details">
-          ${category}
           <h3 class="shop-product-card__title">
-            <a href="${productURL}">${escapeHTML(product.name)}</a>
+            <a href="${url}">${escapeHTML(product.name)}</a>
           </h3>
+
           ${description}
-          ${rating}
 
           <div class="shop-product-card__price-row">
             <span class="shop-product-card__price">
               ${escapeHTML(formatPrice(product.price, product.currency))}
             </span>
             ${hasDiscount
-              ? `<span class="shop-product-card__old-price">${escapeHTML(formatPrice(product.compareAtPrice, product.currency))}</span>`
+              ? `<span class="shop-product-card__old-price">${escapeHTML(
+                  formatPrice(product.compareAtPrice, product.currency)
+                )}</span>`
               : ""}
           </div>
 
-          ${availability}
-
           <div class="shop-product-card__actions">
-            <a class="shop-product-card__details-link" href="${productURL}">
-              Voir le produit
+            <a class="shop-product-card__details-link" href="${url}">
+              View product
             </a>
-            <a class="shop-product-card__quick-add"
-               href="wishlist.html"
-               aria-label="Consulter mes favoris"
-               title="Consulter mes favoris">
+            <a
+              class="shop-product-card__quick-add"
+              href="wishlist.html"
+              aria-label="Open wishlist"
+              title="Open wishlist"
+            >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20.8 8.8c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.6 4.6 0 0 1 12 6.3a4.6 4.6 0 0 1 8.8 2.5Z"></path>
               </svg>
@@ -488,41 +575,18 @@ const Shop = (() => {
     `;
   }
 
-  function showState(title, message, type = "empty") {
-    elements.catalogState.classList.add("is-visible");
-    elements.stateTitle.textContent = title;
-    elements.stateMessage.textContent = message;
-    elements.stateEyebrow.textContent =
-      type === "error" ? "Connexion" : "Catalogue XELOS";
-
-    elements.stateReset.hidden = type === "error";
-  }
-
-  function hideState() {
-    elements.catalogState.classList.remove("is-visible");
-  }
-
   function renderActiveFilters() {
+    if (!elements.activeFilters) return;
+
     const filters = [];
 
     if (state.search) {
       filters.push({
-        label: `Recherche : ${state.search}`,
+        label: `Search: ${state.search}`,
         clear: () => {
           state.search = "";
-          elements.catalogSearch.value = "";
-        }
-      });
-    }
-
-    if (state.category) {
-      filters.push({
-        label: state.category,
-        clear: () => {
-          state.category = "";
-          document.querySelectorAll('input[name="category"]').forEach(input => {
-            input.checked = input.value === "";
-          });
+          if (elements.catalogSearch) elements.catalogSearch.value = "";
+          if (elements.headerSearchInput) elements.headerSearchInput.value = "";
         }
       });
     }
@@ -532,7 +596,7 @@ const Shop = (() => {
         label: `Min. ${state.minPrice}`,
         clear: () => {
           state.minPrice = "";
-          elements.minPrice.value = "";
+          if (elements.minPrice) elements.minPrice.value = "";
         }
       });
     }
@@ -542,17 +606,17 @@ const Shop = (() => {
         label: `Max. ${state.maxPrice}`,
         clear: () => {
           state.maxPrice = "";
-          elements.maxPrice.value = "";
+          if (elements.maxPrice) elements.maxPrice.value = "";
         }
       });
     }
 
     if (state.inStockOnly) {
       filters.push({
-        label: "Disponibles",
+        label: "In stock",
         clear: () => {
           state.inStockOnly = false;
-          elements.inStockOnly.checked = false;
+          if (elements.inStockOnly) elements.inStockOnly.checked = false;
         }
       });
     }
@@ -560,13 +624,16 @@ const Shop = (() => {
     elements.activeFilters.innerHTML = filters.map((filter, index) => `
       <span class="filter-chip">
         ${escapeHTML(filter.label)}
-        <button type="button" data-clear-filter="${index}" aria-label="Supprimer le filtre ${escapeHTML(filter.label)}">×</button>
+        <button
+          type="button"
+          data-clear-filter="${index}"
+          aria-label="Remove filter ${escapeHTML(filter.label)}"
+        >×</button>
       </span>
     `).join("");
 
-    elements.activeFilters
-      .querySelectorAll("[data-clear-filter]")
-      .forEach(button => {
+    elements.activeFilters.querySelectorAll("[data-clear-filter]")
+      .forEach((button) => {
         button.addEventListener("click", () => {
           filters[Number(button.dataset.clearFilter)]?.clear();
           state.page = 1;
@@ -574,11 +641,15 @@ const Shop = (() => {
         });
       });
 
-    elements.activeFilterCount.textContent = String(filters.length);
-    elements.activeFilterCount.hidden = filters.length === 0;
+    if (elements.activeFilterCount) {
+      elements.activeFilterCount.textContent = String(filters.length);
+      elements.activeFilterCount.hidden = filters.length === 0;
+    }
   }
 
   function renderPagination(totalPages) {
+    if (!elements.catalogPagination || !elements.paginationPages) return;
+
     if (totalPages <= 1) {
       elements.catalogPagination.hidden = true;
       elements.paginationPages.innerHTML = "";
@@ -586,70 +657,59 @@ const Shop = (() => {
     }
 
     elements.catalogPagination.hidden = false;
-    elements.previousPage.disabled = state.page <= 1;
-    elements.nextPage.disabled = state.page >= totalPages;
 
+    if (elements.previousPage) {
+      elements.previousPage.disabled = state.page <= 1;
+    }
+
+    if (elements.nextPage) {
+      elements.nextPage.disabled = state.page >= totalPages;
+    }
+
+    const start = Math.max(1, Math.min(state.page - 2, totalPages - 4));
+    const end = Math.min(totalPages, start + 4);
     const pages = [];
 
-    let start = Math.max(1, state.page - 2);
-    let end = Math.min(totalPages, state.page + 2);
-
-    if (end - start < 4) {
-      if (start === 1) {
-        end = Math.min(totalPages, 5);
-      } else if (end === totalPages) {
-        start = Math.max(1, totalPages - 4);
-      }
-    }
-
-    if (start > 1) {
-      pages.push({ label: "1", page: 1 });
-
-      if (start > 2) {
-        pages.push({ label: "…", page: null });
-      }
-    }
+    if (start > 1) pages.push({ label: "1", page: 1 });
+    if (start > 2) pages.push({ label: "…", page: null });
 
     for (let page = start; page <= end; page += 1) {
       pages.push({ label: String(page), page });
     }
 
-    if (end < totalPages) {
-      if (end < totalPages - 1) {
-        pages.push({ label: "…", page: null });
-      }
+    if (end < totalPages - 1) pages.push({ label: "…", page: null });
+    if (end < totalPages) pages.push({ label: String(totalPages), page: totalPages });
 
-      pages.push({ label: String(totalPages), page: totalPages });
-    }
-
-    elements.paginationPages.innerHTML = pages.map(item => {
+    elements.paginationPages.innerHTML = pages.map((item) => {
       if (item.page === null) {
         return `<span class="pagination-page" aria-hidden="true">…</span>`;
       }
 
       return `
-        <button type="button"
-                class="pagination-page ${item.page === state.page ? "is-active" : ""}"
-                data-page="${item.page}"
-                ${item.page === state.page ? 'aria-current="page"' : ""}>
-          ${item.label}
-        </button>
+        <button
+          type="button"
+          class="pagination-page ${item.page === state.page ? "is-active" : ""}"
+          data-page="${item.page}"
+          ${item.page === state.page ? 'aria-current="page"' : ""}
+        >${item.label}</button>
       `;
     }).join("");
 
-    elements.paginationPages
-      .querySelectorAll("[data-page]")
-      .forEach(button => {
+    elements.paginationPages.querySelectorAll("[data-page]")
+      .forEach((button) => {
         button.addEventListener("click", () => {
           state.page = Number(button.dataset.page);
           render();
-          scrollToCatalogResults();
+          scrollToResults();
         });
       });
   }
 
-  function scrollToCatalogResults() {
-    const top = elements.productGrid.getBoundingClientRect().top + window.scrollY - 130;
+  function scrollToResults() {
+    if (!elements.productGrid) return;
+
+    const top = elements.productGrid.getBoundingClientRect().top +
+      window.scrollY - 130;
 
     window.scrollTo({
       top,
@@ -662,27 +722,17 @@ const Shop = (() => {
   function render() {
     renderActiveFilters();
 
-    if (state.loading) {
-      return;
-    }
-
-    if (state.error) {
-      return;
-    }
+    if (state.loading || state.error || !elements.productGrid) return;
 
     if (!state.loaded) {
-      elements.productGrid.innerHTML = "";
+      elements.productGrid.replaceChildren();
       elements.productGrid.hidden = true;
-      elements.productGrid.setAttribute("aria-busy", "false");
 
       showState(
-        "Le catalogue se prépare",
-        "Les produits réels seront affichés ici après leur chargement depuis la source de données XELOS."
+        "Your next discovery starts here",
+        "Products will appear when the catalogue has loaded."
       );
 
-      elements.catalogStatus.textContent = "En attente des données";
-      elements.resultsSummary.textContent = "Catalogue en attente.";
-      elements.catalogPagination.hidden = true;
       return;
     }
 
@@ -695,24 +745,33 @@ const Shop = (() => {
     }
 
     if (totalProducts === 0) {
-      elements.productGrid.innerHTML = "";
+      elements.productGrid.replaceChildren();
       elements.productGrid.hidden = true;
       elements.productGrid.setAttribute("aria-busy", "false");
 
-      elements.catalogStatus.textContent = "Aucun résultat";
-      elements.resultsSummary.textContent = "0 produit trouvé";
+      if (elements.catalogStatus) {
+        elements.catalogStatus.textContent = "No results";
+      }
+
+      if (elements.resultsSummary) {
+        elements.resultsSummary.textContent = "0 products found";
+      }
 
       showState(
+        state.products.length === 0 ? "The catalogue is empty" : "No results found",
         state.products.length === 0
-          ? "Le catalogue est vide"
-          : "Aucun résultat",
-        state.products.length === 0
-          ? "Aucun produit n’a été fourni par la source de données."
-          : "Aucun produit ne correspond à ces critères. Modifiez les filtres ou lancez une nouvelle recherche."
+          ? "There are no publicly available products with valid prices yet."
+          : "No products match these filters. Try changing your search."
       );
 
-      elements.stateReset.hidden = state.products.length === 0;
-      elements.catalogPagination.hidden = true;
+      if (elements.stateReset) {
+        elements.stateReset.hidden = state.products.length === 0;
+      }
+
+      if (elements.catalogPagination) {
+        elements.catalogPagination.hidden = true;
+      }
+
       return;
     }
 
@@ -733,14 +792,16 @@ const Shop = (() => {
     elements.productGrid.hidden = false;
     elements.productGrid.setAttribute("aria-busy", "false");
 
-    const firstResult = startIndex + 1;
-    const lastResult = Math.min(startIndex + state.pageSize, totalProducts);
+    if (elements.resultsSummary) {
+      const first = startIndex + 1;
+      const last = Math.min(startIndex + state.pageSize, totalProducts);
+      elements.resultsSummary.textContent =
+        `Showing ${first}–${last} of ${totalProducts} products`;
+    }
 
-    elements.resultsSummary.textContent =
-      `Affichage de ${firstResult}–${lastResult} sur ${totalProducts} produit${totalProducts > 1 ? "s" : ""}`;
-
-    elements.catalogStatus.textContent =
-      `${state.products.length} produit${state.products.length > 1 ? "s" : ""} chargé${state.products.length > 1 ? "s" : ""}`;
+    if (elements.catalogStatus) {
+      elements.catalogStatus.textContent = `${state.products.length} products loaded`;
+    }
 
     renderPagination(totalPages);
   }
@@ -753,18 +814,11 @@ const Shop = (() => {
     state.inStockOnly = false;
     state.page = 1;
 
-    elements.catalogSearch.value = "";
-    elements.minPrice.value = "";
-    elements.maxPrice.value = "";
-    elements.inStockOnly.checked = false;
-
-    const allCategoriesInput = document.querySelector(
-      'input[name="category"][value=""]'
-    );
-
-    if (allCategoriesInput) {
-      allCategoriesInput.checked = true;
-    }
+    if (elements.catalogSearch) elements.catalogSearch.value = "";
+    if (elements.headerSearchInput) elements.headerSearchInput.value = "";
+    if (elements.minPrice) elements.minPrice.value = "";
+    if (elements.maxPrice) elements.maxPrice.value = "";
+    if (elements.inStockOnly) elements.inStockOnly.checked = false;
 
     render();
   }
@@ -772,106 +826,107 @@ const Shop = (() => {
   function setFiltersOpen(open) {
     state.filtersOpen = open;
 
-    elements.catalogFilters.hidden = !open;
-    elements.filterToggle.setAttribute("aria-expanded", String(open));
-    elements.filterToggle.classList.toggle("is-active", open);
+    if (elements.catalogFilters) elements.catalogFilters.hidden = !open;
+
+    if (elements.filterToggle) {
+      elements.filterToggle.setAttribute("aria-expanded", String(open));
+      elements.filterToggle.classList.toggle("is-active", open);
+    }
   }
 
   function toggleView() {
     state.view = state.view === "grid" ? "list" : "grid";
 
-    elements.viewToggle.setAttribute(
-      "aria-pressed",
-      String(state.view === "list")
-    );
+    if (elements.viewToggle) {
+      elements.viewToggle.setAttribute(
+        "aria-pressed",
+        String(state.view === "list")
+      );
 
-    elements.viewToggle.setAttribute(
-      "aria-label",
-      state.view === "list"
-        ? "Passer à l’affichage en grille"
-        : "Passer à l’affichage en liste"
-    );
+      elements.viewToggle.setAttribute(
+        "aria-label",
+        state.view === "list" ? "Switch to grid view" : "Switch to list view"
+      );
+    }
 
     render();
   }
 
   function toggleMobileMenu() {
+    if (!elements.primaryNavigation || !elements.menuToggle) return;
+
     const isOpen = elements.primaryNavigation.classList.toggle("is-open");
 
     elements.menuToggle.setAttribute("aria-expanded", String(isOpen));
     elements.menuToggle.setAttribute(
       "aria-label",
-      isOpen ? "Fermer le menu" : "Ouvrir le menu"
+      isOpen ? "Close navigation menu" : "Open navigation menu"
     );
   }
 
   function handleHeaderSearch(event) {
     event.preventDefault();
 
-    const query = elements.headerSearchInput.value.trim();
+    const query = elements.headerSearchInput?.value.trim() || "";
 
-    elements.catalogSearch.value = query;
+    if (elements.catalogSearch) elements.catalogSearch.value = query;
+
     state.search = query;
     state.page = 1;
-
     render();
 
-    const catalog = getElement("catalogue");
-
-    if (catalog) {
-      catalog.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "auto"
-          : "smooth"
-      });
-    }
+    byId("catalogue")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth"
+    });
   }
 
   function readURLParameters() {
     const params = new URLSearchParams(window.location.search);
 
-    const search = params.get("q") || params.get("search") || "";
-    const sort = params.get("sort") || "recommended";
-    const category = params.get("category") || "";
-    const min = params.get("min");
-    const max = params.get("max");
-    const available = params.get("available");
+    state.search = params.get("q") || params.get("search") || "";
+    state.minPrice = params.get("min") || "";
+    state.maxPrice = params.get("max") || "";
+    state.inStockOnly = params.get("available") === "true";
 
-    state.search = search;
-    state.category = category;
-    state.minPrice = min !== null && min !== "" && Number(min) >= 0 ? min : "";
-    state.maxPrice = max !== null && max !== "" && Number(max) >= 0 ? max : "";
-    state.inStockOnly = available === "true";
-    state.sort = [
+    const sort = params.get("sort") || "recommended";
+    const validSorts = [
       "recommended",
       "newest",
       "popular",
       "price-asc",
       "price-desc",
       "name-asc"
-    ].includes(sort) ? sort : "recommended";
+    ];
 
-    elements.catalogSearch.value = state.search;
-    elements.headerSearchInput.value = state.search;
-    elements.minPrice.value = state.minPrice;
-    elements.maxPrice.value = state.maxPrice;
-    elements.inStockOnly.checked = state.inStockOnly;
-    elements.sortSelect.value = state.sort;
+    state.sort = validSorts.includes(sort) ? sort : "recommended";
+
+    if (elements.catalogSearch) elements.catalogSearch.value = state.search;
+    if (elements.headerSearchInput) {
+      elements.headerSearchInput.value = state.search;
+    }
+    if (elements.minPrice) elements.minPrice.value = state.minPrice;
+    if (elements.maxPrice) elements.maxPrice.value = state.maxPrice;
+    if (elements.inStockOnly) {
+      elements.inStockOnly.checked = state.inStockOnly;
+    }
+    if (elements.sortSelect) elements.sortSelect.value = state.sort;
   }
 
   function validatePriceInputs() {
-    const min = elements.minPrice.value;
-    const max = elements.maxPrice.value;
+    const min = elements.minPrice?.value ?? "";
+    const max = elements.maxPrice?.value ?? "";
 
-    elements.minPrice.setCustomValidity("");
-    elements.maxPrice.setCustomValidity("");
+    elements.minPrice?.setCustomValidity("");
+    elements.maxPrice?.setCustomValidity("");
 
     if (min !== "" && (!Number.isFinite(Number(min)) || Number(min) < 0)) {
-      elements.minPrice.setCustomValidity("Entrez un prix minimum positif.");
+      elements.minPrice?.setCustomValidity("Enter a valid minimum price.");
     }
 
     if (max !== "" && (!Number.isFinite(Number(max)) || Number(max) < 0)) {
-      elements.maxPrice.setCustomValidity("Entrez un prix maximum positif.");
+      elements.maxPrice?.setCustomValidity("Enter a valid maximum price.");
     }
 
     if (
@@ -881,87 +936,93 @@ const Shop = (() => {
       Number.isFinite(Number(max)) &&
       Number(min) > Number(max)
     ) {
-      elements.maxPrice.setCustomValidity(
-        "Le prix maximum doit être supérieur ou égal au prix minimum."
+      elements.maxPrice?.setCustomValidity(
+        "Maximum price must be greater than or equal to minimum price."
       );
     }
 
-    return elements.minPrice.reportValidity() &&
-      elements.maxPrice.reportValidity();
+    const minValid = !elements.minPrice || elements.minPrice.reportValidity();
+    const maxValid = !elements.maxPrice || elements.maxPrice.reportValidity();
+
+    return minValid && maxValid;
   }
 
   function bindEvents() {
-    elements.menuToggle.addEventListener("click", toggleMobileMenu);
+    elements.menuToggle?.addEventListener("click", toggleMobileMenu);
 
-    elements.primaryNavigation.querySelectorAll("a").forEach(link => {
+    elements.primaryNavigation?.querySelectorAll("a").forEach((link) => {
       link.addEventListener("click", () => {
         elements.primaryNavigation.classList.remove("is-open");
-        elements.menuToggle.setAttribute("aria-expanded", "false");
-        elements.menuToggle.setAttribute("aria-label", "Ouvrir le menu");
+        elements.menuToggle?.setAttribute("aria-expanded", "false");
+        elements.menuToggle?.setAttribute("aria-label", "Open navigation menu");
       });
     });
 
-    elements.headerSearch.addEventListener("submit", handleHeaderSearch);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        elements.primaryNavigation?.classList.remove("is-open");
+        elements.menuToggle?.setAttribute("aria-expanded", "false");
+      }
+    });
 
-    elements.catalogSearch.addEventListener("input", () => {
+    elements.headerSearch?.addEventListener("submit", handleHeaderSearch);
+
+    elements.catalogSearch?.addEventListener("input", () => {
       state.search = elements.catalogSearch.value.trim();
       state.page = 1;
       render();
     });
 
-    elements.filterToggle.addEventListener("click", () => {
+    elements.filterToggle?.addEventListener("click", () => {
       setFiltersOpen(!state.filtersOpen);
     });
 
-    elements.clearFilters.addEventListener("click", clearFilters);
-    elements.stateReset.addEventListener("click", clearFilters);
+    elements.clearFilters?.addEventListener("click", clearFilters);
+    elements.stateReset?.addEventListener("click", clearFilters);
 
-    elements.applyFilters.addEventListener("click", () => {
-      if (!validatePriceInputs()) {
-        return;
-      }
-
+    elements.applyFilters?.addEventListener("click", () => {
+      if (!validatePriceInputs()) return;
       readFiltersFromForm();
       render();
     });
 
-    elements.minPrice.addEventListener("change", () => {
+    elements.minPrice?.addEventListener("change", () => {
       if (validatePriceInputs()) {
         readFiltersFromForm();
         render();
       }
     });
 
-    elements.maxPrice.addEventListener("change", () => {
+    elements.maxPrice?.addEventListener("change", () => {
       if (validatePriceInputs()) {
         readFiltersFromForm();
         render();
       }
     });
 
-    elements.inStockOnly.addEventListener("change", () => {
+    elements.inStockOnly?.addEventListener("change", () => {
       state.inStockOnly = elements.inStockOnly.checked;
       state.page = 1;
       render();
     });
 
-    elements.sortSelect.addEventListener("change", () => {
+    elements.sortSelect?.addEventListener("change", () => {
       state.sort = elements.sortSelect.value;
       state.page = 1;
       render();
     });
 
-    elements.viewToggle.addEventListener("click", toggleView);
+    elements.viewToggle?.addEventListener("click", toggleView);
 
-    elements.previousPage.addEventListener("click", () => {
+    elements.previousPage?.addEventListener("click", () => {
       if (state.page > 1) {
         state.page -= 1;
         render();
-        scrollToCatalogResults();
+        scrollToResults();
       }
     });
 
-    elements.nextPage.addEventListener("click", () => {
+    elements.nextPage?.addEventListener("click", () => {
       const totalPages = Math.ceil(
         getFilteredProducts().length / state.pageSize
       );
@@ -969,45 +1030,34 @@ const Shop = (() => {
       if (state.page < totalPages) {
         state.page += 1;
         render();
-        scrollToCatalogResults();
+        scrollToResults();
       }
-    });
-
-    // A page-level listener can be used by the data layer when it
-    // has loaded and normalized the real catalog.
-    window.addEventListener("xelos:catalog-data", event => {
-      setProducts(event.detail?.products);
-    });
-
-    window.addEventListener("xelos:catalog-loading", setLoading);
-
-    window.addEventListener("xelos:catalog-error", event => {
-      setError(
-        event.detail?.message || "Une erreur empêche le chargement du catalogue."
-      );
     });
   }
 
   function init() {
     cacheElements();
 
-    elements.currentYear.textContent = String(new Date().getFullYear());
+    if (elements.currentYear) {
+      elements.currentYear.textContent = String(new Date().getFullYear());
+    }
+
+    if (!elements.productGrid) {
+      console.error(
+        "XELOS shop: #productGrid was not found. Check the IDs in shop.html."
+      );
+      return;
+    }
 
     readURLParameters();
-    renderCategories();
     bindEvents();
-
-    // No invented table names, columns, demo products or direct database
-    // queries here. The centralized data layer supplies actual records
-    // once its real schema mapping has been verified.
-    render();
+    renderCategories();
+    loadCatalogue();
   }
 
   return {
     init,
-    setProducts,
-    setLoading,
-    setError,
+    loadCatalogue,
     clearFilters
   };
 })();
