@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Explorez les catégories XELOS et découvrez une sélection de produits conçue pour votre quotidien.">
+  <title>Catégories | XELOS</title>
+
+  <link rel="stylesheet" href="css/core/variables.css">
+  <link rel="stylesheet" href="css/core/reset.css">
+  <link rel="stylesheet" href="css/core/typography.css">
+  <link rel="stylesheet" href="css/core/layout.css">
+  <link rel="stylesheet" href="css/core/utilities.css">
+  <link rel="stylesheet" href="css/components/buttons.css">
+  <link rel="stylesheet" href="css/components/forms.css">
+  <link rel="stylesheet" href="css/components/header.css">
+  <link rel="stylesheet" href="css/components/footer.css">
+  <link rel="stylesheet" href="css/components/product-card.css">
+  <link rel="stylesheet" href="css/components/pagination.css">
+  <link rel="stylesheet" href="css/pages/category.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <script type="module" src="js/category.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Aller au contenu</a>
+
+  <div class="category-announcement">
+    <span class="announcement-dot" aria-hidden="true"></span>
+    <p>XELOS — Découvrez votre prochain essentiel.</p>
+    <a href="shop.html">Explorer la boutique <span aria-hidden="true">↗</span></a>
+  </div>
+
+  <header class="site-header">
+    <div class="header-main">
+      <button class="mobile-menu-button" id="mobile-menu-button"
+        type="button" aria-label="Ouvrir le menu" aria-expanded="false"
+        aria-controls="primary-navigation">
+        <span></span><span></span>
+      </button>
+
+      <a class="brand" href="index.html" aria-label="XELOS, accueil">
+        <!-- Remplacer le chemin par le nom réel du logo dans assets/logos/. -->
+        <img src="assets/logos/xelos-logo.png" alt="XELOS">
+      </a>
+
+      <nav class="primary-navigation" id="primary-navigation"
+        aria-label="Navigation principale">
+        <a href="shop.html">Boutique</a>
+        <a href="category.html" class="is-active" aria-current="page">Catégories</a>
+        <a href="collections.html">Collections</a>
+        <a href="shop.html?sort=newest">Nouveautés</a>
+      </nav>
+
+      <div class="header-actions">
+        <form class="header-search" id="header-search-form" role="search">
+          <label class="visually-hidden" for="header-search-input">Rechercher un produit</label>
+          <span aria-hidden="true" class="search-icon">⌕</span>
+          <input id="header-search-input" type="search" placeholder="Rechercher..."
+            autocomplete="off">
+          <button type="submit" aria-label="Lancer la recherche">↗</button>
+        </form>
+
+        <a class="header-icon-link" href="account.html" aria-label="Mon compte">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="3.5"></circle>
+            <path d="M4.5 20c.7-4 3.1-6 7.5-6s6.8 2 7.5 6"></path>
+          </svg>
+        </a>
+        <a class="header-icon-link cart-link" href="cart.html" aria-label="Mon panier">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 4h2l2.1 11.2a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L21 8H6"></path>
+            <circle cx="10" cy="20" r="1"></circle>
+            <circle cx="18" cy="20" r="1"></circle>
+          </svg>
+          <span class="cart-count" id="cart-count" hidden>0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="category-hero" aria-labelledby="hero-title">
+      <div class="category-hero-copy">
+        <p class="eyebrow"><span></span> L'univers XELOS</p>
+        <h1 id="hero-title">Tout commence<br>par <span>une découverte.</span></h1>
+        <p class="hero-description">
+          Explorez nos univers, trouvez vos essentiels et découvrez
+          les produits qui correspondent à votre style de vie.
+        </p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#category-browser">
+            Explorer les catégories <span aria-hidden="true">↘</span>
+          </a>
+          <a class="hero-secondary-link" href="shop.html">
+            Voir toute la boutique <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div class="hero-footnote">
+          <span class="hero-footnote-line"></span>
+          <span>Votre prochaine découverte est ici.</span>
+        </div>
+      </div>
+
+      <div class="category-hero-art" aria-label="Composition éditoriale XELOS">
+        <div class="hero-art-grid" aria-hidden="true"></div>
+        <div class="hero-art-orbit hero-art-orbit-one" aria-hidden="true"></div>
+        <div class="hero-art-orbit hero-art-orbit-two" aria-hidden="true"></div>
+        <div class="hero-art-core" aria-hidden="true">
+          <span class="core-x">X</span>
+          <span class="core-caption">DISCOVER MORE</span>
+        </div>
+        <div class="hero-art-label hero-art-label-top">
+          <span>01 / EXPLORE</span>
+          <span>XELOS®</span>
+        </div>
+        <div class="hero-art-label hero-art-label-bottom">
+          <span>CURATED FOR YOU</span>
+          <span>EST. FOR EVERYDAY</span>
+        </div>
+        <span class="hero-art-index" aria-hidden="true">X.</span>
+      </div>
+    </section>
+
+    <section class="category-explorer section-shell" id="category-browser"
+      aria-labelledby="category-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow"><span></span> Parcourir</p>
+          <h2 id="category-heading">Explorez par <span>univers.</span></h2>
+          <p class="section-intro">
+            Des catégories organisées pour vous aider à trouver plus rapidement ce que vous cherchez.
+          </p>
+        </div>
+        <p class="section-index">01 <span>/</span> CATÉGORIES</p>
+      </div>
+
+      <div class="category-quick-nav" id="category-quick-nav"
+        aria-label="Accès rapide aux catégories">
+        <button class="category-chip is-active" type="button"
+          data-category-slug="" aria-pressed="true">Tout explorer <span>↗</span></button>
+        <p class="category-nav-status" id="category-nav-status" aria-live="polite">
+          Les catégories disponibles apparaîtront ici.
+        </p>
+      </div>
+
+      <div class="category-feature-grid" id="category-feature-grid">
+        <div class="category-loading" id="category-loading">
+          <span class="loading-mark" aria-hidden="true"></span>
+          <p>Préparation des catégories…</p>
+        </div>
+      </div>
+      <p class="category-data-note" id="category-data-note" hidden></p>
+    </section>
+
+    <section class="category-products section-shell" aria-labelledby="products-heading">
+      <div class="section-heading products-heading">
+        <div>
+          <p class="eyebrow"><span></span> La sélection</p>
+          <h2 id="products-heading">À découvrir <span>maintenant.</span></h2>
+          <p class="section-intro" id="selected-category-description">
+            Parcourez les produits disponibles dans les catégories XELOS.
+          </p>
+        </div>
+        <a class="text-link" href="shop.html">Toute la boutique <span>↗</span></a>
+      </div>
+
+      <div class="catalog-layout">
+        <aside class="catalog-filters" id="catalog-filters"
+          aria-label="Filtres de produits">
+          <div class="filter-heading">
+            <h3>Affiner</h3>
+            <button type="button" id="reset-filters" class="filter-reset">Réinitialiser</button>
+          </div>
+
+          <div class="filter-group">
+            <label for="product-search">Recherche</label>
+            <div class="filter-search-wrap">
+              <span aria-hidden="true">⌕</span>
+              <input type="search" id="product-search" placeholder="Nom du produit...">
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <h4>Catégorie</h4>
+            <div class="category-filter-list" id="category-filter-list">
+              <label class="filter-option">
+                <input type="radio" name="category-filter" value="" checked>
+                <span>Toutes les catégories</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <h4>Prix</h4>
+            <div class="price-filter-fields">
+              <label>
+                <span class="visually-hidden">Prix minimum</span>
+                <input id="price-min" type="number" min="0" step="0.01" placeholder="Min.">
+              </label>
+              <span aria-hidden="true">—</span>
+              <label>
+                <span class="visually-hidden">Prix maximum</span>
+                <input id="price-max" type="number" min="0" step="0.01" placeholder="Max.">
+              </label>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-option availability-option">
+              <input type="checkbox" id="available-only">
+              <span>Disponibles uniquement</span>
+            </label>
+          </div>
+
+          <button type="button" class="filter-apply-button" id="apply-filters">
+            Appliquer les filtres <span>↗</span>
+          </button>
+        </aside>
+
+        <div class="catalog-results">
+          <div class="catalog-toolbar">
+            <div class="catalog-result-count">
+              <span class="result-count-number" id="result-count">—</span>
+              <span id="result-count-label">produits</span>
+            </div>
+
+            <div class="catalog-toolbar-actions">
+              <label class="sort-control">
+                <span>Trier par</span>
+                <select id="product-sort">
+                  <option value="recommended">Recommandés</option>
+                  <option value="newest">Nouveautés</option>
+                  <option value="popular">Popularité</option>
+                  <option value="price-asc">Prix croissant</option>
+                  <option value="price-desc">Prix décroissant</option>
+                  <option value="name">Nom A–Z</option>
+                </select>
+              </label>
+
+              <div class="view-toggle" role="group" aria-label="Disposition des produits">
+                <button type="button" class="view-button is-active"
+                  data-view="grid" aria-label="Affichage en grille" aria-pressed="true">▦</button>
+                <button type="button" class="view-button"
+                  data-view="list" aria-label="Affichage en liste" aria-pressed="false">☰</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="active-filter-list" id="active-filter-list"
+            aria-label="Filtres actifs"></div>
+
+          <div class="category-product-grid" id="category-product-grid"
+            aria-live="polite" aria-busy="true">
+            <div class="catalog-empty-state">
+              <span class="empty-state-symbol" aria-hidden="true">X.</span>
+              <h3>Votre sélection se prépare.</h3>
+              <p>Les produits s'afficheront ici une fois les données du catalogue connectées.</p>
+            </div>
+          </div>
+
+          <nav class="catalog-pagination" id="catalog-pagination"
+            aria-label="Pagination des produits" hidden>
+            <button type="button" id="previous-page" aria-label="Page précédente">←</button>
+            <div id="pagination-pages"></div>
+            <button type="button" id="next-page" aria-label="Page suivante">→</button>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <section class="category-editorial section-shell" aria-labelledby="editorial-title">
+      <div class="editorial-panel">
+        <div class="editorial-grid-lines" aria-hidden="true"></div>
+        <div class="editorial-copy">
+          <p class="eyebrow"><span></span> L'expérience XELOS</p>
+          <h2 id="editorial-title">Moins chercher.<br><span>Mieux choisir.</span></h2>
+          <p>
+            Explorez les produits par univers et comparez les options
+            pour trouver ce qui répond à vos besoins.
+          </p>
+          <a class="button button-light" href="shop.html">
+            Explorer la boutique <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div class="editorial-visual" aria-hidden="true">
+          <div class="editorial-ring editorial-ring-outer"></div>
+          <div class="editorial-ring editorial-ring-inner"></div>
+          <span class="editorial-x">X</span>
+          <span class="editorial-side-label">DISCOVER YOUR NEXT</span>
+          <span class="editorial-bottom-label">XELOS / COLLECTIONS</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-main">
+      <div class="footer-brand-column">
+        <a class="footer-brand" href="index.html">
+          <img src="assets/logos/xelos-logo.png" alt="XELOS">
+        </a>
+        <p>Des essentiels choisis pour votre quotidien.</p>
+      </div>
+      <div class="footer-link-column">
+        <h2>Explorer</h2>
+        <a href="shop.html">Boutique</a>
+        <a href="category.html">Catégories</a>
+        <a href="collections.html">Collections</a>
+      </div>
+      <div class="footer-link-column">
+        <h2>Assistance</h2>
+        <a href="contact.html">Nous contacter</a>
+        <a href="faq.html">FAQ</a>
+        <a href="shipping-policy.html">Livraison</a>
+        <a href="returns-policy.html">Retours</a>
+      </div>
+      <div class="footer-link-column">
+        <h2>Informations</h2>
+        <a href="privacy-policy.html">Confidentialité</a>
+        <a href="terms.html">Conditions d'utilisation</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span id="current-year"></span> XELOS. Tous droits réservés.</p>
+      <p>DESIGNED TO DISCOVER <span aria-hidden="true">↗</span></p>
+    </div>
+  </footer>
+</body>
+</html>
