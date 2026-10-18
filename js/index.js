@@ -4,7 +4,7 @@
  * Fichier : js/index.js
  */
 
-import { selectRows } from "./core/data.js";
+import { selectRows } from "./data.js";
 
 const $ = (selector, root = document) =>
   root.querySelector(selector);
