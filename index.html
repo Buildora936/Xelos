@@ -1,314 +1,468 @@
 
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="Découvrez la sélection XELOS : des produits soigneusement sélectionnés, des nouveautés et des offres à découvrir.">
+  <meta name="description" content="Discover XELOS: thoughtfully selected products, fresh arrivals, and everyday essentials.">
 
-  <title>XELOS — Découvrez votre prochain essentiel</title>
+  <title>XELOS — Discover Your Next Essential</title>
 
+  <!-- Favicon: confirm the icon file exists at this path -->
+  <link rel="icon" type="image/png" href="assets/logos/xelos-logo.png">
+  <link rel="apple-touch-icon" href="assets/logos/xelos-logo.png">
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+  <!-- Core styles -->
   <link rel="stylesheet" href="css/core/variables.css">
   <link rel="stylesheet" href="css/core/reset.css">
   <link rel="stylesheet" href="css/core/typography.css">
   <link rel="stylesheet" href="css/core/layout.css">
   <link rel="stylesheet" href="css/core/utilities.css">
 
+  <!-- Shared components -->
   <link rel="stylesheet" href="css/components/buttons.css">
   <link rel="stylesheet" href="css/components/header.css">
   <link rel="stylesheet" href="css/components/footer.css">
   <link rel="stylesheet" href="css/components/product-card.css">
   <link rel="stylesheet" href="css/components/loader.css">
   <link rel="stylesheet" href="css/responsive.css">
+
+  <!-- Homepage styles -->
   <link rel="stylesheet" href="css/pages/index.css">
 
   <script type="module" src="js/index.js"></script>
 </head>
 
 <body class="home-page">
-  <a class="skip-link" href="#main-content">Passer au contenu</a>
 
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <!-- Announcement -->
   <div class="announcement-bar">
-    <p>Découvrez l'univers XELOS.</p>
-    <a href="shop.html">Explorer la boutique <span aria-hidden="true">↗</span></a>
+    <p>Discover something different with XELOS.</p>
+    <a href="shop.html">
+      Explore the store <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+    </a>
   </div>
 
+  <!-- Header -->
   <header class="home-header">
     <div class="home-header-inner">
-      <a class="brand-mark" href="index.html" aria-label="XELOS, accueil">
-        <!-- Remplacer le chemin par le nom exact du logo noir existant. -->
-        <img src="assets/logos/xelos-logo.png" alt="XELOS" width="100" height="100">
+
+      <a class="brand-mark" href="index.html" aria-label="XELOS home">
+        <img
+          src="assets/logos/xelos-logo.png"
+          alt="XELOS"
+          width="100"
+          height="100"
+        >
       </a>
 
-      <nav class="primary-navigation" id="primary-navigation" aria-label="Navigation principale">
-        <a href="shop.html">Boutique</a>
-        <a href="category.html">Catégories</a>
+      <nav class="primary-navigation" id="primary-navigation" aria-label="Main navigation">
+        <a href="shop.html">Shop</a>
+        <a href="category.html">Categories</a>
         <a href="collections.html">Collections</a>
-        <a href="#new-arrivals">Nouveautés</a>
+        <a href="#new-arrivals">New arrivals</a>
       </nav>
 
       <form class="header-search-form" action="search.html" role="search">
-        <label class="visually-hidden" for="home-search">Rechercher un produit</label>
-        <span aria-hidden="true">⌕</span>
-        <input id="home-search" type="search" name="q" placeholder="Que recherchez-vous ?">
-        <button type="submit" aria-label="Rechercher">↗</button>
+        <label class="visually-hidden" for="home-search">Search products</label>
+
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+
+        <input
+          id="home-search"
+          type="search"
+          name="q"
+          placeholder="Search products..."
+          autocomplete="off"
+        >
+
+        <button type="submit" aria-label="Search">
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </button>
       </form>
 
       <div class="home-header-actions">
-        <a class="header-action-link account-link" href="account.html" aria-label="Mon compte">
-          <span aria-hidden="true">♙</span>
-        </a>
-        <a class="header-action-link cart-link" href="cart.html" aria-label="Panier">
-          <span aria-hidden="true">♧</span>
-          <span class="cart-count" id="cart-count" hidden>0</span>
-        </a>
-        <button class="mobile-menu-toggle" id="mobile-menu-toggle"
-          type="button" aria-controls="primary-navigation"
-          aria-expanded="false" aria-label="Ouvrir le menu">
-          <span></span><span></span>
+
+        <!-- Visible by default for unauthenticated visitors -->
+        <div class="guest-header-actions" id="guest-header-actions">
+          <a class="header-sign-in" href="login.html">
+            <i class="fa-regular fa-user" aria-hidden="true"></i>
+            <span>Sign in</span>
+          </a>
+        </div>
+
+        <!-- Shown by JavaScript after authentication is confirmed -->
+        <div
+          class="authenticated-header-actions"
+          id="authenticated-header-actions"
+          hidden
+        >
+          <a
+            class="header-action-link account-link"
+            href="account.html"
+            aria-label="My account"
+            title="My account"
+          >
+            <i class="fa-regular fa-user" aria-hidden="true"></i>
+          </a>
+
+          <a
+            class="header-action-link notification-link"
+            href="notifications.html"
+            aria-label="Notifications"
+            title="Notifications"
+          >
+            <i class="fa-regular fa-bell" aria-hidden="true"></i>
+            <span class="notification-count" id="notification-count" hidden>0</span>
+          </a>
+
+          <a
+            class="header-action-link cart-link"
+            href="cart.html"
+            aria-label="Shopping cart"
+            title="Shopping cart"
+          >
+            <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+            <span class="cart-count" id="cart-count" hidden>0</span>
+          </a>
+        </div>
+
+        <button
+          class="mobile-menu-toggle"
+          id="mobile-menu-toggle"
+          type="button"
+          aria-controls="primary-navigation"
+          aria-expanded="false"
+          aria-label="Open navigation menu"
+        >
+          <span></span>
+          <span></span>
         </button>
+
       </div>
     </div>
   </header>
 
   <main id="main-content">
+
+    <!-- Hero -->
     <section class="hero-section" aria-labelledby="hero-title">
+
       <div class="hero-copy">
-        <span class="eyebrow"><span class="eyebrow-dot"></span> BIENVENUE CHEZ XELOS</span>
+        <span class="eyebrow">
+          <span class="eyebrow-dot"></span>
+          DISCOVER XELOS
+        </span>
 
         <h1 id="hero-title">
-          Le détail qui<br>
-          <span>change tout.</span>
+          The details that<br>
+          <span>make a difference.</span>
         </h1>
 
         <p class="hero-description">
-          Découvrez des produits qui associent design, utilité et caractère.
-          Trouvez vos prochains essentiels, à votre façon.
+          Discover products that bring together thoughtful design,
+          everyday usefulness, and distinctive style.
         </p>
 
         <div class="hero-actions">
           <a class="home-button home-button-primary" href="shop.html">
-            Explorer la boutique <span aria-hidden="true">↗</span>
+            Explore the store
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
           </a>
+
           <a class="hero-secondary-link" href="#categories">
-            Découvrir XELOS <span aria-hidden="true">↓</span>
+            Discover XELOS
+            <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
           </a>
         </div>
 
         <div class="hero-note">
           <span class="hero-note-line"></span>
-          <p>Une nouvelle façon de découvrir vos essentiels.</p>
+          <p>Find the things that fit your world.</p>
         </div>
       </div>
 
-      <div class="hero-visual" aria-label="Composition visuelle XELOS">
+      <!-- Real product imagery will be inserted from the actual catalogue.
+           Intentionally empty until real product data is available. -->
+      <div
+        class="hero-visual"
+        id="home-hero-visual"
+        aria-label="Featured XELOS products"
+      >
         <div class="hero-visual-backdrop"></div>
-        <div class="hero-orbit hero-orbit-one"></div>
-        <div class="hero-orbit hero-orbit-two"></div>
 
-        <div class="hero-visual-content">
-          <span class="hero-vertical-label">DISCOVER WHAT MOVES YOU</span>
-          <div class="hero-blue-disc"></div>
-          <div class="hero-object-card">
-            <span class="hero-object-kicker">THE XELOS EDIT</span>
-            <span class="hero-object-symbol" aria-hidden="true">X</span>
-            <span class="hero-object-caption">DESIGNED FOR EVERYDAY.</span>
-          </div>
-        </div>
-
-        <div class="hero-floating-label">
-          <span class="floating-label-dot"></span>
-          <span>À vous de découvrir</span>
-        </div>
-
-        <span class="hero-index">01 / XELOS</span>
+        <div
+          class="hero-product-gallery"
+          id="home-hero-products"
+          aria-live="polite"
+        ></div>
       </div>
 
       <div class="hero-bottom-line">
-        <span>DESIGN · DÉCOUVERTE · ESSENTIELS</span>
-        <a href="#categories">DÉFILER POUR EXPLORER ↓</a>
-      </div>
-    </section>
-
-    <section class="home-categories section-shell" id="categories"
-      aria-labelledby="categories-title">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">VOTRE PROCHAINE DÉCOUVERTE</span>
-          <h2 id="categories-title">Explorer par univers<span>.</span></h2>
-        </div>
-        <a class="text-link" href="category.html">Toutes les catégories <span>↗</span></a>
-      </div>
-
-      <div class="category-grid" id="home-categories-grid">
-        <div class="content-loading" role="status">
-          Chargement des catégories…
-        </div>
-      </div>
-    </section>
-
-    <section class="home-products section-shell" id="new-arrivals"
-      aria-labelledby="new-arrivals-title">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">FRAÎCHEMENT SÉLECTIONNÉS</span>
-          <h2 id="new-arrivals-title">Les nouveautés<span>.</span></h2>
-          <p>Découvrez les dernières additions au catalogue XELOS.</p>
-        </div>
-        <a class="text-link" href="shop.html?sort=newest">Tout découvrir <span>↗</span></a>
-      </div>
-
-      <div class="home-product-grid" id="new-products-grid"
-        aria-live="polite">
-        <div class="content-loading" role="status">
-          Chargement des nouveautés…
-        </div>
-      </div>
-    </section>
-
-    <section class="editorial-banner" aria-labelledby="editorial-title">
-      <div class="editorial-content">
-        <span class="eyebrow editorial-eyebrow">L'EXPÉRIENCE XELOS</span>
-        <h2 id="editorial-title">Moins de compromis.<br><span>Plus de découvertes.</span></h2>
-        <p>Explorez notre catalogue et trouvez les produits qui correspondent à vos envies.</p>
-        <a class="home-button home-button-light" href="shop.html">
-          Découvrir la sélection <span aria-hidden="true">↗</span>
+        <span>DESIGN · DISCOVERY · EVERYDAY ESSENTIALS</span>
+        <a href="#categories">
+          SCROLL TO EXPLORE
+          <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
         </a>
       </div>
+
+    </section>
+
+    <!-- Categories: populated from real catalogue data -->
+    <section
+      class="home-categories section-shell"
+      id="categories"
+      aria-labelledby="categories-title"
+    >
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">FIND YOUR NEXT DISCOVERY</span>
+          <h2 id="categories-title">Explore by category<span>.</span></h2>
+        </div>
+
+        <a class="text-link" href="category.html">
+          All categories
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="category-grid" id="home-categories-grid" aria-live="polite"></div>
+    </section>
+
+    <!-- New arrivals -->
+    <section
+      class="home-products section-shell"
+      id="new-arrivals"
+      aria-labelledby="new-arrivals-title"
+    >
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">JUST ADDED</span>
+          <h2 id="new-arrivals-title">New arrivals<span>.</span></h2>
+          <p>Explore the latest additions to the XELOS catalogue.</p>
+        </div>
+
+        <a class="text-link" href="shop.html?sort=newest">
+          Discover more
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div
+        class="home-product-grid"
+        id="new-products-grid"
+        aria-live="polite"
+      ></div>
+    </section>
+
+    <!-- Editorial banner -->
+    <section class="editorial-banner" aria-labelledby="editorial-title">
+      <div class="editorial-content">
+        <span class="eyebrow editorial-eyebrow">THE XELOS EXPERIENCE</span>
+
+        <h2 id="editorial-title">
+          Fewer compromises.<br>
+          <span>More to discover.</span>
+        </h2>
+
+        <p>
+          Explore the catalogue and find products that match your needs
+          and personal style.
+        </p>
+
+        <a class="home-button home-button-light" href="shop.html">
+          Explore the selection
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
       <div class="editorial-art" aria-hidden="true">
         <div class="editorial-ring"></div>
         <div class="editorial-square"></div>
         <div class="editorial-small-disc"></div>
-        <span>X</span>
       </div>
     </section>
 
-    <section class="home-products section-shell" id="best-sellers"
-      aria-labelledby="best-sellers-title">
+    <!-- Best sellers: no fabricated products -->
+    <section
+      class="home-products section-shell"
+      id="best-sellers"
+      aria-labelledby="best-sellers-title"
+    >
       <div class="section-heading">
         <div>
-          <span class="eyebrow">LES FAVORIS</span>
-          <h2 id="best-sellers-title">Les incontournables<span>.</span></h2>
-          <p>Retrouvez les produits les plus populaires du catalogue.</p>
+          <span class="eyebrow">CUSTOMER FAVOURITES</span>
+          <h2 id="best-sellers-title">Best sellers<span>.</span></h2>
+          <p>Discover popular products from the XELOS catalogue.</p>
         </div>
-        <a class="text-link" href="shop.html?sort=popular">Voir la sélection <span>↗</span></a>
-      </div>
 
-      <div class="home-product-grid" id="best-sellers-grid"
-        aria-live="polite">
-        <div class="content-loading" role="status">
-          Chargement de la sélection…
-        </div>
-      </div>
-    </section>
-
-    <section class="home-promo-section" id="promotions"
-      aria-labelledby="promotions-title">
-      <div class="promo-copy">
-        <span class="eyebrow">LES OFFRES XELOS</span>
-        <h2 id="promotions-title">Les bonnes découvertes<br>ne se font pas attendre<span>.</span></h2>
-        <p>Retrouvez ici les promotions actuellement disponibles sur les produits éligibles.</p>
-        <a class="home-button home-button-primary" href="shop.html?filter=promotions">
-          Voir les offres <span aria-hidden="true">↗</span>
+        <a class="text-link" href="shop.html?sort=popular">
+          View the selection
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
         </a>
       </div>
+
+      <div
+        class="home-product-grid"
+        id="best-sellers-grid"
+        aria-live="polite"
+      ></div>
+    </section>
+
+    <!-- Promotions -->
+    <section
+      class="home-promo-section"
+      id="promotions"
+      aria-labelledby="promotions-title"
+    >
+      <div class="promo-copy">
+        <span class="eyebrow">XELOS OFFERS</span>
+
+        <h2 id="promotions-title">
+          Great finds<br>
+          worth discovering<span>.</span>
+        </h2>
+
+        <p>
+          Explore available offers on eligible products.
+        </p>
+
+        <a class="home-button home-button-primary" href="shop.html?filter=promotions">
+          Explore offers
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
       <div class="promo-visual" aria-hidden="true">
         <div class="promo-outline"></div>
         <div class="promo-disc"></div>
-        <span class="promo-mark">X.</span>
       </div>
     </section>
 
-    <section class="home-recommendations section-shell"
-      id="recommendations" aria-labelledby="recommendations-title">
+    <!-- Recommendations: empty until actual data is available -->
+    <section
+      class="home-recommendations section-shell"
+      id="recommendations"
+      aria-labelledby="recommendations-title"
+    >
       <div class="section-heading">
         <div>
-          <span class="eyebrow">UNE SÉLECTION QUI ÉVOLUE</span>
-          <h2 id="recommendations-title">À découvrir pour vous<span>.</span></h2>
-          <p>Des suggestions basées progressivement sur les produits consultés,
-            les préférences et les tendances du catalogue.</p>
+          <span class="eyebrow">A SELECTION THAT EVOLVES</span>
+          <h2 id="recommendations-title">Picked for discovery<span>.</span></h2>
+          <p>
+            Recommendations can be introduced when real catalogue data
+            and browsing signals are available.
+          </p>
         </div>
       </div>
 
-      <div class="home-product-grid" id="recommended-products-grid"
-        aria-live="polite">
-        <p class="recommendation-note">
-          Vos recommandations personnalisées apparaîtront lorsque le catalogue
-          et les signaux de découverte seront disponibles.
-        </p>
+      <div
+        class="home-product-grid"
+        id="recommended-products-grid"
+        aria-live="polite"
+      ></div>
+    </section>
+
+    <!-- Store highlights -->
+    <section class="home-service-strip" aria-label="About shopping with XELOS">
+      <div class="service-item">
+        <span class="service-icon" aria-hidden="true">
+          <i class="fa-solid fa-compass"></i>
+        </span>
+
+        <div>
+          <h3>Discover more</h3>
+          <p>Explore products and their available features.</p>
+        </div>
+      </div>
+
+      <div class="service-item">
+        <span class="service-icon" aria-hidden="true">
+          <i class="fa-regular fa-rectangle-list"></i>
+        </span>
+
+        <div>
+          <h3>Clear product details</h3>
+          <p>Review prices, options, and availability on product pages.</p>
+        </div>
+      </div>
+
+      <div class="service-item">
+        <span class="service-icon" aria-hidden="true">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </span>
+
+        <div>
+          <h3>Easy discovery</h3>
+          <p>Use search, categories, and filters to find what you need.</p>
+        </div>
       </div>
     </section>
 
-    <section class="home-service-strip" aria-label="Informations XELOS">
-      <div class="service-item">
-        <span class="service-icon" aria-hidden="true">↗</span>
-        <div>
-          <h3>Une sélection à explorer</h3>
-          <p>Parcourez les produits et leurs caractéristiques.</p>
-        </div>
-      </div>
-      <div class="service-item">
-        <span class="service-icon" aria-hidden="true">◇</span>
-        <div>
-          <h3>Des informations claires</h3>
-          <p>Prix, variantes et disponibilité selon les fiches produits.</p>
-        </div>
-      </div>
-      <div class="service-item">
-        <span class="service-icon" aria-hidden="true">⌕</span>
-        <div>
-          <h3>Une découverte simple</h3>
-          <p>Recherche, catégories et filtres pour aller à l'essentiel.</p>
-        </div>
-      </div>
-    </section>
   </main>
 
+  <!-- Footer -->
   <footer class="home-footer">
     <div class="home-footer-main">
+
       <div class="footer-brand-column">
-        <a class="brand-mark footer-brand-mark" href="index.html" aria-label="XELOS, accueil">
-          <img src="assets/logos/xelos-logo.png" alt="XELOS" width="100" height="100">
+        <a class="brand-mark footer-brand-mark" href="index.html" aria-label="XELOS home">
+          <img
+            src="assets/logos/xelos-logo.png"
+            alt="XELOS"
+            width="100"
+            height="100"
+          >
         </a>
-        <p>Découvrez vos prochains essentiels.</p>
+
+        <p>Discover your next essentials.</p>
       </div>
 
       <div class="footer-link-column">
-        <h2>Découvrir</h2>
-        <a href="shop.html">Boutique</a>
-        <a href="category.html">Catégories</a>
+        <h2>Explore</h2>
+        <a href="shop.html">Shop</a>
+        <a href="category.html">Categories</a>
         <a href="collections.html">Collections</a>
-        <a href="search.html">Recherche</a>
+        <a href="search.html">Search</a>
       </div>
 
       <div class="footer-link-column">
-        <h2>Votre compte</h2>
-        <a href="account.html">Mon compte</a>
-        <a href="orders.html">Mes commandes</a>
-        <a href="wishlist.html">Favoris</a>
-        <a href="support.html">Assistance</a>
+        <h2>Your account</h2>
+        <a href="login.html">Sign in</a>
+        <a href="account.html">My account</a>
+        <a href="orders.html">My orders</a>
+        <a href="wishlist.html">Wishlist</a>
+        <a href="support.html">Support</a>
       </div>
 
       <div class="footer-link-column">
-        <h2>Informations</h2>
-        <a href="about.html">À propos</a>
+        <h2>Information</h2>
+        <a href="about.html">About XELOS</a>
         <a href="contact.html">Contact</a>
-        <a href="shipping-policy.html">Livraison</a>
-        <a href="returns-policy.html">Retours</a>
-        <a href="privacy-policy.html">Confidentialité</a>
-        <a href="terms.html">Conditions d'utilisation</a>
+        <a href="shipping-policy.html">Shipping policy</a>
+        <a href="returns-policy.html">Returns policy</a>
+        <a href="privacy-policy.html">Privacy policy</a>
+        <a href="terms.html">Terms of service</a>
       </div>
+
     </div>
 
     <div class="home-footer-bottom">
-      <p>© <span id="current-year"></span> XELOS. Tous droits réservés.</p>
-      <a href="terms.html">Conditions et politiques</a>
+      <p>© <span id="current-year"></span> XELOS. All rights reserved.</p>
+      <a href="terms.html">Terms and policies</a>
     </div>
   </footer>
+
 </body>
 </html>
