@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,12 +14,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    referrerpolicy="no-referrer"
+  >
+
+  <!-- Core styles -->
   <link rel="stylesheet" href="css/core/variables.css">
   <link rel="stylesheet" href="css/core/reset.css">
   <link rel="stylesheet" href="css/core/typography.css">
   <link rel="stylesheet" href="css/core/layout.css">
   <link rel="stylesheet" href="css/core/utilities.css">
 
+  <!-- Components -->
   <link rel="stylesheet" href="css/components/buttons.css">
   <link rel="stylesheet" href="css/components/forms.css">
   <link rel="stylesheet" href="css/components/header.css">
@@ -38,6 +47,7 @@
 
   <header class="site-header">
     <div class="shop-header__inner">
+
       <button
         class="icon-button shop-menu-toggle"
         id="menuToggle"
@@ -46,9 +56,7 @@
         aria-expanded="false"
         aria-controls="primaryNavigation"
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 7h16M4 12h16M4 17h16"></path>
-        </svg>
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
       </button>
 
       <a class="shop-brand" href="index.html" aria-label="XELOS home">
@@ -77,10 +85,7 @@
           Search products
         </label>
 
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="10.8" cy="10.8" r="6.8"></circle>
-          <path d="m16 16 4.2 4.2"></path>
-        </svg>
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
 
         <input
           id="headerSearchInput"
@@ -95,31 +100,29 @@
         </button>
       </form>
 
-      <div class="shop-header__actions">
-        <a class="header-action" href="account.html" aria-label="My account">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="8" r="3.5"></circle>
-            <path d="M5 20c.6-3.6 3.1-5.5 7-5.5s6.4 1.9 7 5.5"></path>
-          </svg>
-        </a>
-
-        <a
-          class="header-action header-action--cart"
-          href="cart.html"
-          aria-label="Shopping cart"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.5L21 8H6"></path>
-            <circle cx="10" cy="20" r="1"></circle>
-            <circle cx="18" cy="20" r="1"></circle>
-          </svg>
-          <span class="cart-count" id="cartCount" hidden>0</span>
-        </a>
+      <!--
+        shop.js must populate this container after checking the Supabase session.
+        Visitor: Sign in + Create account.
+        Authenticated user: Account + Cart.
+        Do not add account/cart links here statically.
+      -->
+      <div
+        class="shop-header__actions"
+        id="shopHeaderActions"
+        aria-label="Account and shopping actions"
+        aria-live="polite"
+      >
+        <span class="header-actions__loading" aria-label="Checking account">
+          <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+        </span>
       </div>
+
     </div>
   </header>
 
   <main id="main-content">
+
+    <!-- HERO -->
     <section class="shop-hero" aria-labelledby="shopTitle">
       <div class="shop-hero__content">
         <p class="eyebrow">
@@ -138,7 +141,7 @@
 
         <a class="button button-primary shop-hero__cta" href="#catalogue">
           Explore the shop
-          <span aria-hidden="true">↘</span>
+          <i class="fa-solid fa-arrow-down-right" aria-hidden="true"></i>
         </a>
       </div>
 
@@ -147,19 +150,25 @@
         <div class="shop-hero__orb shop-hero__orb--front"></div>
         <div class="shop-hero__line shop-hero__line--one"></div>
         <div class="shop-hero__line shop-hero__line--two"></div>
+
         <div class="shop-hero__label">
           DISCOVER<br>
           <strong>YOUR NEXT.</strong>
         </div>
+
         <div class="shop-hero__number">X<span>01</span></div>
       </div>
 
       <div class="shop-hero__bottom">
         <span>STYLE. CHOICE. SIMPLICITY.</span>
-        <span>XELOS CATALOGUE <span aria-hidden="true">↗</span></span>
+        <span>
+          XELOS CATALOGUE
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </span>
       </div>
     </section>
 
+    <!-- TRUST STRIP -->
     <section class="shop-trust-strip" aria-label="The XELOS experience">
       <div>
         <span class="trust-icon">01</span>
@@ -186,6 +195,7 @@
       </div>
     </section>
 
+    <!-- CATALOGUE -->
     <section
       class="shop-catalog section-container"
       id="catalogue"
@@ -215,12 +225,7 @@
             aria-expanded="true"
             aria-controls="catalogFilters"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 7h16M7 12h10M10 17h4"></path>
-              <circle cx="8" cy="7" r="2"></circle>
-              <circle cx="15" cy="12" r="2"></circle>
-              <circle cx="12" cy="17" r="2"></circle>
-            </svg>
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i>
             Filters
             <span id="activeFilterCount" class="filter-count" hidden>0</span>
           </button>
@@ -249,17 +254,14 @@
             aria-label="Switch to list view"
             aria-pressed="false"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="4" y="4" width="6" height="6" rx="1"></rect>
-              <rect x="14" y="4" width="6" height="6" rx="1"></rect>
-              <rect x="4" y="14" width="6" height="6" rx="1"></rect>
-              <rect x="14" y="14" width="6" height="6" rx="1"></rect>
-            </svg>
+            <i class="fa-solid fa-list" aria-hidden="true"></i>
           </button>
         </div>
       </div>
 
       <div class="catalog-layout">
+
+        <!-- FILTERS -->
         <aside
           class="catalog-filters"
           id="catalogFilters"
@@ -275,10 +277,7 @@
 
             <label class="filter-search">
               <span class="visually-hidden">Search the catalogue</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="10.8" cy="10.8" r="6.8"></circle>
-                <path d="m16 16 4.2 4.2"></path>
-              </svg>
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
 
               <input
                 id="catalogSearch"
@@ -294,7 +293,7 @@
 
             <div id="categoryOptions">
               <p class="filter-hint">
-                Categories will appear when the catalogue category relationship is connected.
+                Categories will appear when catalogue categories are connected.
               </p>
             </div>
           </fieldset>
@@ -357,6 +356,7 @@
           </button>
         </aside>
 
+        <!-- RESULTS -->
         <div class="catalog-results">
           <div class="catalog-results__top">
             <p id="resultsSummary" aria-live="polite">
@@ -385,11 +385,7 @@
             aria-atomic="true"
           >
             <div class="catalog-state__icon" aria-hidden="true">
-              <svg viewBox="0 0 64 64">
-                <path d="M12 20h40l-4 32H16l-4-32Z"></path>
-                <path d="M23 24v-7a9 9 0 0 1 18 0v7"></path>
-                <path d="M25 36h14"></path>
-              </svg>
+              <i class="fa-solid fa-bag-shopping"></i>
             </div>
 
             <p class="eyebrow" id="stateEyebrow">XELOS CATALOGUE</p>
@@ -420,7 +416,7 @@
               type="button"
               aria-label="Previous page"
             >
-              ←
+              <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
             </button>
 
             <div class="pagination-pages" id="paginationPages"></div>
@@ -431,19 +427,18 @@
               type="button"
               aria-label="Next page"
             >
-              →
+              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
             </button>
           </nav>
         </div>
       </div>
     </section>
 
-    <section
-      class="catalog-editorial"
-      aria-labelledby="editorialTitle"
-    >
+    <!-- EDITORIAL -->
+    <section class="catalog-editorial" aria-labelledby="editorialTitle">
       <div class="catalog-editorial__copy">
         <p class="eyebrow">YOUR NEXT DISCOVERY</p>
+
         <h2 id="editorialTitle">
           The right choice<br>
           starts <span>here.</span>
@@ -455,7 +450,7 @@
 
         <a class="button button-light" href="collections.html">
           Explore collections
-          <span aria-hidden="true">↗</span>
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
         </a>
       </div>
 
@@ -465,8 +460,10 @@
         <span>X</span>
       </div>
     </section>
+
   </main>
 
+  <!-- FOOTER -->
   <footer class="site-footer">
     <div class="shop-footer__main">
       <div class="shop-footer__brand">
@@ -504,7 +501,7 @@
         <a href="terms.html">Terms of service</a>
       </div>
     </div>
- 
+
     <div class="shop-footer__bottom">
       <p>© <span id="currentYear"></span> XELOS. All rights reserved.</p>
       <span>DESIGNED FOR YOUR NEXT.</span>
@@ -512,3 +509,4 @@
   </footer>
 </body>
 </html>
+```
