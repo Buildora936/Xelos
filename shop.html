@@ -1,12 +1,18 @@
 
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="Explorez le catalogue XELOS : découvrez des produits soigneusement sélectionnés et trouvez ceux qui vous correspondent.">
-  <title>Boutique | XELOS</title>
+  <meta name="theme-color" content="#0B1220">
+  <meta name="description" content="Explore the XELOS catalogue. Discover carefully selected products, compare prices and find your next essential.">
+  <meta name="robots" content="index,follow">
+
+  <title>Shop — XELOS</title>
+
+  <link rel="icon" href="assets/logos/xelos-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
   <link rel="stylesheet" href="css/core/variables.css">
   <link rel="stylesheet" href="css/core/reset.css">
@@ -28,52 +34,80 @@
 </head>
 
 <body class="shop-page">
-  <a class="skip-link" href="#main-content">Passer au contenu</a>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
   <header class="site-header">
     <div class="shop-header__inner">
-      <button class="icon-button shop-menu-toggle"
-              id="menuToggle"
-              type="button"
-              aria-label="Ouvrir le menu"
-              aria-expanded="false"
-              aria-controls="primaryNavigation">
+      <button
+        class="icon-button shop-menu-toggle"
+        id="menuToggle"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+        aria-controls="primaryNavigation"
+      >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h16"></path>
         </svg>
       </button>
 
-      <a class="shop-brand" href="index.html" aria-label="XELOS — Accueil">
-        <!-- Conserve le logo existant et adapte uniquement ce chemin à son vrai nom. -->
-        <img src="assets/logos/xelos-logo.png" alt="XELOS" class="shop-brand__logo">
+      <a class="shop-brand" href="index.html" aria-label="XELOS home">
+        <img
+          src="assets/logos/xelos-logo.png"
+          alt="XELOS"
+          class="shop-brand__logo"
+          width="56"
+          height="56"
+        >
       </a>
 
-      <nav class="shop-navigation" id="primaryNavigation" aria-label="Navigation principale">
-        <a href="index.html">Accueil</a>
-        <a href="shop.html" class="is-active" aria-current="page">Boutique</a>
+      <nav
+        class="shop-navigation"
+        id="primaryNavigation"
+        aria-label="Main navigation"
+      >
+        <a href="index.html">Home</a>
+        <a href="shop.html" class="is-active" aria-current="page">Shop</a>
         <a href="collections.html">Collections</a>
-        <a href="about.html">À propos</a>
+        <a href="about.html">About</a>
       </nav>
 
       <form class="header-search" id="headerSearch" role="search">
-        <label class="visually-hidden" for="headerSearchInput">Rechercher un produit</label>
+        <label class="visually-hidden" for="headerSearchInput">
+          Search products
+        </label>
+
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="10.8" cy="10.8" r="6.8"></circle>
           <path d="m16 16 4.2 4.2"></path>
         </svg>
-        <input id="headerSearchInput" type="search" placeholder="Rechercher un produit…"
-               autocomplete="off">
-        <button type="submit" aria-label="Lancer la recherche">Rechercher</button>
+
+        <input
+          id="headerSearchInput"
+          name="q"
+          type="search"
+          placeholder="Search products..."
+          autocomplete="off"
+        >
+
+        <button type="submit" aria-label="Search catalogue">
+          Search
+        </button>
       </form>
 
       <div class="shop-header__actions">
-        <a class="header-action" href="account.html" aria-label="Mon compte">
+        <a class="header-action" href="account.html" aria-label="My account">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="8" r="3.5"></circle>
             <path d="M5 20c.6-3.6 3.1-5.5 7-5.5s6.4 1.9 7 5.5"></path>
           </svg>
         </a>
-        <a class="header-action header-action--cart" href="cart.html" aria-label="Mon panier">
+
+        <a
+          class="header-action header-action--cart"
+          href="cart.html"
+          aria-label="Shopping cart"
+        >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.5L21 8H6"></path>
             <circle cx="10" cy="20" r="1"></circle>
@@ -88,75 +122,133 @@
   <main id="main-content">
     <section class="shop-hero" aria-labelledby="shopTitle">
       <div class="shop-hero__content">
-        <p class="eyebrow"><span></span> L’univers XELOS</p>
-        <h1 id="shopTitle">Trouvez ce qui<br><span>vous correspond.</span></h1>
-        <p>Explorez notre catalogue et découvrez votre prochain essentiel.</p>
+        <p class="eyebrow">
+          <span aria-hidden="true"></span>
+          THE XELOS EXPERIENCE
+        </p>
+
+        <h1 id="shopTitle">
+          Find what<br>
+          <span>fits your world.</span>
+        </h1>
+
+        <p>
+          Discover thoughtfully selected products and find your next essential.
+        </p>
+
         <a class="button button-primary shop-hero__cta" href="#catalogue">
-          Explorer le catalogue
+          Explore the shop
           <span aria-hidden="true">↘</span>
         </a>
       </div>
+
       <div class="shop-hero__art" aria-hidden="true">
         <div class="shop-hero__orb shop-hero__orb--back"></div>
         <div class="shop-hero__orb shop-hero__orb--front"></div>
         <div class="shop-hero__line shop-hero__line--one"></div>
         <div class="shop-hero__line shop-hero__line--two"></div>
-        <div class="shop-hero__label">DISCOVER<br><strong>YOUR NEXT.</strong></div>
+        <div class="shop-hero__label">
+          DISCOVER<br>
+          <strong>YOUR NEXT.</strong>
+        </div>
         <div class="shop-hero__number">X<span>01</span></div>
       </div>
+
       <div class="shop-hero__bottom">
-        <span>STYLE. CHOIX. SIMPLICITÉ.</span>
-        <span>CATALOGUE XELOS <span aria-hidden="true">↗</span></span>
+        <span>STYLE. CHOICE. SIMPLICITY.</span>
+        <span>XELOS CATALOGUE <span aria-hidden="true">↗</span></span>
       </div>
     </section>
 
-    <section class="shop-trust-strip" aria-label="Les engagements XELOS">
-      <div><span class="trust-icon">01</span><span><strong>Choix simplifié</strong><small>Filtres clairs et utiles</small></span></div>
-      <div><span class="trust-icon">02</span><span><strong>Informations lisibles</strong><small>Comparez en un regard</small></span></div>
-      <div><span class="trust-icon">03</span><span><strong>Achat maîtrisé</strong><small>Consultez chaque détail</small></span></div>
+    <section class="shop-trust-strip" aria-label="The XELOS experience">
+      <div>
+        <span class="trust-icon">01</span>
+        <span>
+          <strong>Easy discovery</strong>
+          <small>Clear and useful filters</small>
+        </span>
+      </div>
+
+      <div>
+        <span class="trust-icon">02</span>
+        <span>
+          <strong>Clear information</strong>
+          <small>Compare at a glance</small>
+        </span>
+      </div>
+
+      <div>
+        <span class="trust-icon">03</span>
+        <span>
+          <strong>Informed choices</strong>
+          <small>Explore product details</small>
+        </span>
+      </div>
     </section>
 
-    <section class="shop-catalog section-container" id="catalogue" aria-labelledby="catalogueTitle">
+    <section
+      class="shop-catalog section-container"
+      id="catalogue"
+      aria-labelledby="catalogueTitle"
+    >
       <div class="catalog-intro">
         <div>
-          <p class="eyebrow">À découvrir</p>
-          <h2 id="catalogueTitle">La boutique <span>XELOS.</span></h2>
-          <p class="catalog-intro__description">Parcourez les produits, affinez votre recherche et trouvez votre favori.</p>
+          <p class="eyebrow">EXPLORE</p>
+          <h2 id="catalogueTitle">The XELOS <span>shop.</span></h2>
+          <p class="catalog-intro__description">
+            Browse products, refine your search and discover your next favourite.
+          </p>
         </div>
+
         <div class="catalog-intro__meta">
           <span class="catalog-live-dot" aria-hidden="true"></span>
-          <span id="catalogStatus">Catalogue</span>
+          <span id="catalogStatus" role="status">Connecting to catalogue...</span>
         </div>
       </div>
 
       <div class="catalog-toolbar">
         <div class="catalog-toolbar__left">
-          <button class="filter-toggle button button-secondary" id="filterToggle"
-                  type="button" aria-expanded="true" aria-controls="catalogFilters">
+          <button
+            class="filter-toggle button button-secondary"
+            id="filterToggle"
+            type="button"
+            aria-expanded="true"
+            aria-controls="catalogFilters"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 7h16M7 12h10M10 17h4"></path>
               <circle cx="8" cy="7" r="2"></circle>
               <circle cx="15" cy="12" r="2"></circle>
               <circle cx="12" cy="17" r="2"></circle>
             </svg>
-            Filtres
+            Filters
             <span id="activeFilterCount" class="filter-count" hidden>0</span>
           </button>
-          <button class="text-button" id="clearFilters" type="button">Tout effacer</button>
+
+          <button class="text-button" id="clearFilters" type="button">
+            Clear all
+          </button>
         </div>
 
         <div class="catalog-toolbar__right">
-          <label class="results-label" for="sortSelect">Trier par</label>
-          <select id="sortSelect" class="sort-select">
-            <option value="recommended">Recommandés</option>
-            <option value="newest">Nouveautés</option>
-            <option value="popular">Popularité</option>
-            <option value="price-asc">Prix croissant</option>
-            <option value="price-desc">Prix décroissant</option>
-            <option value="name-asc">Nom : A à Z</option>
+          <label class="results-label" for="sortSelect">Sort by</label>
+
+          <select id="sortSelect" class="sort-select" name="sort">
+            <option value="recommended">Recommended</option>
+            <option value="newest">Newest</option>
+            <option value="popular">Popularity</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
+            <option value="name-asc">Name: A to Z</option>
           </select>
-          <button class="view-toggle" id="viewToggle" type="button"
-                  aria-label="Passer à l’affichage en liste" aria-pressed="false">
+
+          <button
+            class="view-toggle"
+            id="viewToggle"
+            type="button"
+            aria-label="Switch to list view"
+            aria-pressed="false"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="4" y="4" width="6" height="6" rx="1"></rect>
               <rect x="14" y="4" width="6" height="6" rx="1"></rect>
@@ -168,73 +260,130 @@
       </div>
 
       <div class="catalog-layout">
-        <aside class="catalog-filters" id="catalogFilters" aria-label="Filtres du catalogue">
+        <aside
+          class="catalog-filters"
+          id="catalogFilters"
+          aria-label="Catalogue filters"
+        >
           <div class="filter-panel__heading">
-            <h3>Affiner</h3>
-            <span>Votre sélection</span>
+            <h3>Refine your search</h3>
+            <span>Your selection</span>
           </div>
 
           <fieldset class="filter-group">
-            <legend>Recherche</legend>
+            <legend>Search</legend>
+
             <label class="filter-search">
-              <span class="visually-hidden">Rechercher dans le catalogue</span>
+              <span class="visually-hidden">Search the catalogue</span>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="10.8" cy="10.8" r="6.8"></circle>
                 <path d="m16 16 4.2 4.2"></path>
               </svg>
-              <input id="catalogSearch" type="search" placeholder="Nom du produit…">
+
+              <input
+                id="catalogSearch"
+                type="search"
+                placeholder="Product name..."
+                autocomplete="off"
+              >
             </label>
           </fieldset>
 
           <fieldset class="filter-group">
-            <legend>Catégorie</legend>
-            <label class="filter-option">
-              <input type="radio" name="category" value="" checked>
-              <span>Toutes les catégories</span>
-            </label>
+            <legend>Category</legend>
+
             <div id="categoryOptions">
-              <p class="filter-hint">Les catégories seront proposées à partir du catalogue disponible.</p>
+              <p class="filter-hint">
+                Categories will appear when the catalogue category relationship is connected.
+              </p>
             </div>
           </fieldset>
 
           <fieldset class="filter-group">
-            <legend>Prix</legend>
+            <legend>Price range (USD)</legend>
+
             <div class="price-inputs">
               <label>
                 <span>Minimum</span>
-                <input id="minPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0">
+                <input
+                  id="minPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                  placeholder="0.00"
+                >
               </label>
+
               <span class="price-separator" aria-hidden="true">—</span>
+
               <label>
                 <span>Maximum</span>
-                <input id="maxPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="∞">
+                <input
+                  id="maxPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                  placeholder="No limit"
+                >
               </label>
             </div>
-            <p class="filter-hint">Prix dans la devise du catalogue.</p>
+
+            <p class="filter-hint">
+              Prices are shown in the currency returned by the catalogue.
+            </p>
           </fieldset>
 
           <fieldset class="filter-group">
-            <legend>Disponibilité</legend>
+            <legend>Availability</legend>
+
             <label class="filter-option filter-option--checkbox">
               <input id="inStockOnly" type="checkbox">
-              <span>Disponibles uniquement</span>
+              <span>Available products only</span>
             </label>
+
+            <p class="filter-hint">
+              Availability filtering requires confirmed inventory data.
+            </p>
           </fieldset>
 
-          <button class="button button-primary filter-apply" id="applyFilters" type="button">
-            Appliquer les filtres
+          <button
+            class="button button-primary filter-apply"
+            id="applyFilters"
+            type="button"
+          >
+            Apply filters
           </button>
         </aside>
 
         <div class="catalog-results">
           <div class="catalog-results__top">
-            <p id="resultsSummary" aria-live="polite">Préparation du catalogue…</p>
-            <div class="active-filters" id="activeFilters" aria-label="Filtres actifs"></div>
+            <p id="resultsSummary" aria-live="polite">
+              Loading catalogue...
+            </p>
+
+            <div
+              class="active-filters"
+              id="activeFilters"
+              aria-label="Active filters"
+            ></div>
           </div>
 
-          <div class="product-grid" id="productGrid" aria-live="polite" aria-busy="true"></div>
+          <div
+            class="product-grid"
+            id="productGrid"
+            aria-live="polite"
+            aria-busy="true"
+          ></div>
 
-          <div class="catalog-state" id="catalogState">
+          <div
+            class="catalog-state"
+            id="catalogState"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             <div class="catalog-state__icon" aria-hidden="true">
               <svg viewBox="0 0 64 64">
                 <path d="M12 20h40l-4 32H16l-4-32Z"></path>
@@ -242,30 +391,74 @@
                 <path d="M25 36h14"></path>
               </svg>
             </div>
-            <p class="eyebrow" id="stateEyebrow">Catalogue XELOS</p>
-            <h3 id="stateTitle">Préparation du catalogue</h3>
-            <p id="stateMessage">Les produits apparaîtront ici dès que les données réelles seront chargées.</p>
-            <button class="button button-secondary" id="stateReset" type="button" hidden>
-              Réinitialiser les filtres
+
+            <p class="eyebrow" id="stateEyebrow">XELOS CATALOGUE</p>
+            <h3 id="stateTitle">Loading the catalogue</h3>
+            <p id="stateMessage">
+              Real product information is being retrieved.
+            </p>
+
+            <button
+              class="button button-secondary"
+              id="stateReset"
+              type="button"
+              hidden
+            >
+              Reset filters
             </button>
           </div>
 
-          <nav class="catalog-pagination" id="catalogPagination" aria-label="Pagination du catalogue" hidden>
-            <button class="pagination-button" id="previousPage" type="button" aria-label="Page précédente">←</button>
+          <nav
+            class="catalog-pagination"
+            id="catalogPagination"
+            aria-label="Catalogue pagination"
+            hidden
+          >
+            <button
+              class="pagination-button"
+              id="previousPage"
+              type="button"
+              aria-label="Previous page"
+            >
+              ←
+            </button>
+
             <div class="pagination-pages" id="paginationPages"></div>
-            <button class="pagination-button" id="nextPage" type="button" aria-label="Page suivante">→</button>
+
+            <button
+              class="pagination-button"
+              id="nextPage"
+              type="button"
+              aria-label="Next page"
+            >
+              →
+            </button>
           </nav>
         </div>
       </div>
     </section>
 
-    <section class="catalog-editorial" aria-label="Découvrir les collections XELOS">
+    <section
+      class="catalog-editorial"
+      aria-labelledby="editorialTitle"
+    >
       <div class="catalog-editorial__copy">
-        <p class="eyebrow">Votre prochaine découverte</p>
-        <h2>Le bon choix<br>commence <span>ici.</span></h2>
-        <p>Explorez les collections et prenez le temps de comparer les détails qui comptent pour vous.</p>
-        <a class="button button-light" href="collections.html">Explorer les collections <span aria-hidden="true">↗</span></a>
+        <p class="eyebrow">YOUR NEXT DISCOVERY</p>
+        <h2 id="editorialTitle">
+          The right choice<br>
+          starts <span>here.</span>
+        </h2>
+
+        <p>
+          Explore our collections and take the time to compare the details that matter to you.
+        </p>
+
+        <a class="button button-light" href="collections.html">
+          Explore collections
+          <span aria-hidden="true">↗</span>
+        </a>
       </div>
+
       <div class="catalog-editorial__graphic" aria-hidden="true">
         <div class="editorial-ring editorial-ring--outer"></div>
         <div class="editorial-ring editorial-ring--inner"></div>
@@ -277,36 +470,43 @@
   <footer class="site-footer">
     <div class="shop-footer__main">
       <div class="shop-footer__brand">
-        <a href="index.html" aria-label="XELOS — Accueil">
-          <img src="assets/logos/xelos-logo.png" alt="XELOS" class="shop-brand__logo">
+        <a href="index.html" aria-label="XELOS home">
+          <img
+            src="assets/logos/xelos-logo.png"
+            alt="XELOS"
+            class="shop-brand__logo"
+            width="56"
+            height="56"
+          >
         </a>
-        <p>Découvrez. Comparez. Choisissez.</p>
+        <p>Discover. Compare. Choose.</p>
       </div>
 
       <div class="shop-footer__column">
-        <h2>Boutique</h2>
-        <a href="shop.html">Tous les produits</a>
+        <h2>Shop</h2>
+        <a href="shop.html">All products</a>
         <a href="collections.html">Collections</a>
-        <a href="wishlist.html">Favoris</a>
+        <a href="wishlist.html">Wishlist</a>
       </div>
 
       <div class="shop-footer__column">
-        <h2>Assistance</h2>
-        <a href="contact.html">Nous contacter</a>
+        <h2>Support</h2>
+        <a href="contact.html">Contact us</a>
         <a href="faq.html">FAQ</a>
-        <a href="shipping-policy.html">Livraison</a>
-        <a href="returns-policy.html">Retours</a>
+        <a href="shipping-policy.html">Shipping</a>
+        <a href="returns-policy.html">Returns</a>
       </div>
 
       <div class="shop-footer__column">
-        <h2>Informations</h2>
-        <a href="about.html">À propos</a>
-        <a href="privacy-policy.html">Confidentialité</a>
-        <a href="terms.html">Conditions d’utilisation</a>
+        <h2>Information</h2>
+        <a href="about.html">About XELOS</a>
+        <a href="privacy-policy.html">Privacy policy</a>
+        <a href="terms.html">Terms of service</a>
       </div>
     </div>
+ 
     <div class="shop-footer__bottom">
-      <p>© <span id="currentYear"></span> XELOS. Tous droits réservés.</p>
+      <p>© <span id="currentYear"></span> XELOS. All rights reserved.</p>
       <span>DESIGNED FOR YOUR NEXT.</span>
     </div>
   </footer>
