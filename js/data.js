@@ -58,7 +58,7 @@ export async function selectRows(
       !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(column)
     ) {
       throw new TypeError(
-        Nom de colonne invalide : ${column}
+        `Nom de colonne invalide : ${column}`
       );
     }
 
@@ -135,7 +135,7 @@ export async function updateRows(
   for (const [column, value] of Object.entries(filters)) {
     if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(column)) {
       throw new TypeError(
-        Nom de colonne invalide : ${column}
+        `Nom de colonne invalide : ${column}`
       );
     }
 
@@ -168,7 +168,7 @@ export async function deleteRows(table, filters) {
   for (const [column, value] of Object.entries(filters)) {
     if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(column)) {
       throw new TypeError(
-        Nom de colonne invalide : ${column}
+        `Nom de colonne invalide : ${column}`
       );
     }
 
