@@ -1,34 +1,22 @@
-
 /**
  * XELOS — Shop / Catalogue
  * File: js/shop.js
  *
- * Data flow: shop.js -> data.js -> Supabase
- * Authentication: existing Supabase session
+ * Flow: shop.js -> data.js -> Supabase
+ * Tables: products, product_media, product_prices
  *
- * Catalogue tables:
- * - products
- * - product_media
- * - product_prices
- *
- * No demo products or fabricated prices.
+ * No demo products, invented tables or fabricated prices.
  */
 
 import { selectRows } from "./data.js";
-import * as SupabaseModule from "./supabase.js";
 
 const Shop = (() => {
   "use strict";
 
   const PAGE_SIZE = 12;
+
   const $ = (selector, root = document) => root.querySelector(selector);
   const byId = (id) => document.getElementById(id);
-
-  const supabase =
-    SupabaseModule.supabase ??
-    SupabaseModule.default?.supabase ??
-    SupabaseModule.default ??
-    null;
 
   const state = {
     products: [],
@@ -45,7 +33,9 @@ const Shop = (() => {
     maxPrice: "",
     inStockOnly: false,
     sort: "recommended",
-    user: null
+    authClient: null,
+    authSubscription: null,
+    authInitialized: false
   };
 
   const elements = {};
@@ -81,7 +71,7 @@ const Shop = (() => {
     "nextPage",
     "paginationPages",
     "currentYear",
-    "cartCount"
+    "shopHeaderActions"
   ];
 
   function cacheElements() {
@@ -101,12 +91,16 @@ const Shop = (() => {
   }
 
   function safeURL(value) {
-    if (typeof value !== "string" || !value.trim()) return "";
+    if (typeof value !== "string" || !value.trim()) {
+      return "";
+    }
 
     try {
-      const url = new URL(value, window.location.href);
+      const url = new URL(value.trim(), window.location.href);
 
-      if (!["http:", "https:"].includes(url.protocol)) return "";
+      if (!["http:", "https:"].includes(url.protocol)) {
+        return "";
+      }
 
       return url.href;
     } catch {
@@ -123,32 +117,338 @@ const Shop = (() => {
 
   function formatPrice(amount, currency = "USD") {
     const value = Number(amount);
+    const normalizedCurrency = String(currency || "USD").toUpperCase();
 
-    if (!Number.isFinite(value)) return "";
-
-    const code = String(currency || "USD").toUpperCase();
+    if (!Number.isFinite(value)) {
+      return "";
+    }
 
     try {
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: code
+        currency: normalizedCurrency
       }).format(value);
     } catch {
-      return `${value.toFixed(2)} ${code}`;
+      return `${value.toFixed(2)} ${normalizedCurrency}`;
     }
   }
 
-  function setStatus(message) {
-    if (elements.catalogStatus) {
-      elements.catalogStatus.textContent = message;
+  function normalizeRows(result, tableName) {
+    if (result && typeof result === "object" && !Array.isArray(result)) {
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (Array.isArray(result.data)) {
+        return result.data;
+      }
+
+      if (Array.isArray(result.rows)) {
+        return result.rows;
+      }
     }
+
+    if (Array.isArray(result)) {
+      return result;
+    }
+
+    if (result == null) {
+      return [];
+    }
+
+    throw new Error(
+      `The "${tableName}" query did not return an array. ` +
+      "Check the return format of selectRows() in js/data.js."
+    );
+  }
+
+  function normalizeBoolean(value) {
+    if (value === true || value === 1 || value === "true") {
+      return true;
+    }
+
+    if (value === false || value === 0 || value === "false") {
+      return false;
+    }
+
+    return null;
+  }
+
+  function normalizeStatus(value) {
+    return String(value ?? "").trim().toLowerCase();
+  }
+
+  function isPublicProduct(product) {
+    /*
+     * Do not display explicitly hidden, private, archived or draft products.
+     * If these fields are missing, rely on the database's public SELECT RLS
+     * policy and log the missing fields for diagnostics.
+     */
+    const status = normalizeStatus(product.status);
+    const visibility = normalizeStatus(product.visibility);
+
+    const blockedStatuses = [
+      "draft",
+      "scheduled",
+      "archived",
+      "disabled",
+      "deleted"
+    ];
+
+    const blockedVisibility = [
+      "hidden",
+      "private",
+      "internal"
+    ];
+
+    if (blockedStatuses.includes(status)) {
+      return false;
+    }
+
+    if (blockedVisibility.includes(visibility)) {
+      return false;
+    }
+
+    if (status && status !== "active") {
+      return false;
+    }
+
+    if (visibility && visibility !== "public") {
+      return false;
+    }
+
+    return true;
+  }
+
+  function sameId(first, second) {
+    if (first == null || second == null) {
+      return false;
+    }
+
+    return String(first) === String(second);
+  }
+
+  function getProductMedia(mediaRows, productId) {
+    return mediaRows
+      .filter((media) => {
+        if (!sameId(media.product_id, productId)) {
+          return false;
+        }
+
+        if (normalizeBoolean(media.is_active) === false) {
+          return false;
+        }
+
+        const mediaType = normalizeStatus(media.media_type);
+
+        return !mediaType || mediaType === "image";
+      })
+      .sort((a, b) => {
+        const primaryA = normalizeBoolean(a.is_primary) === true;
+        const primaryB = normalizeBoolean(b.is_primary) === true;
+
+        if (primaryA !== primaryB) {
+          return primaryA ? -1 : 1;
+        }
+
+        return Number(a.position ?? 0) - Number(b.position ?? 0);
+      });
+  }
+
+  function isPriceInDateRange(price, now) {
+    if (normalizeBoolean(price.is_active) === false) {
+      return false;
+    }
+
+    if (price.starts_at) {
+      const startsAt = Date.parse(price.starts_at);
+
+      if (Number.isFinite(startsAt) && startsAt > now) {
+        return false;
+      }
+    }
+
+    if (price.ends_at) {
+      const endsAt = Date.parse(price.ends_at);
+
+      if (Number.isFinite(endsAt) && endsAt <= now) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function getCurrentPrices(priceRows, productId) {
+    const now = Date.now();
+
+    return priceRows.filter((price) => {
+      if (!sameId(price.product_id, productId)) {
+        return false;
+      }
+
+      if (!isPriceInDateRange(price, now)) {
+        return false;
+      }
+
+      return ["regular", "sale", "compare_at"].includes(
+        normalizeStatus(price.price_type)
+      );
+    });
+  }
+
+  function sortPricesNewestFirst(prices) {
+    return [...prices].sort((a, b) => {
+      const dateA = a.starts_at ? Date.parse(a.starts_at) : 0;
+      const dateB = b.starts_at ? Date.parse(b.starts_at) : 0;
+
+      return (Number.isFinite(dateB) ? dateB : 0) -
+        (Number.isFinite(dateA) ? dateA : 0);
+    });
+  }
+
+  function getNumericAmount(price) {
+    if (!price || price.amount == null || price.amount === "") {
+      return null;
+    }
+
+    const amount = Number(price.amount);
+
+    return Number.isFinite(amount) && amount >= 0
+      ? amount
+      : null;
+  }
+
+  function getPriceInformation(priceRows, productId) {
+    const prices = getCurrentPrices(priceRows, productId);
+
+    const regular = sortPricesNewestFirst(
+      prices.filter((price) => price.price_type === "regular")
+    ).find((price) => getNumericAmount(price) !== null);
+
+    const sale = sortPricesNewestFirst(
+      prices.filter((price) => price.price_type === "sale")
+    ).find((price) => getNumericAmount(price) !== null);
+
+    const compare = sortPricesNewestFirst(
+      prices.filter((price) => price.price_type === "compare_at")
+    ).find((price) => getNumericAmount(price) !== null);
+
+    const regularAmount = getNumericAmount(regular);
+    const saleAmount = getNumericAmount(sale);
+    const compareAmount = getNumericAmount(compare);
+
+    /*
+     * A sale price is only applied when a regular price exists
+     * and the sale price is strictly lower.
+     */
+    const useSale =
+      regularAmount !== null &&
+      saleAmount !== null &&
+      saleAmount < regularAmount;
+
+    const selectedPrice = useSale ? sale : regular;
+
+    if (!selectedPrice) {
+      return null;
+    }
+
+    const amount = getNumericAmount(selectedPrice);
+
+    if (amount === null) {
+      return null;
+    }
+
+    const oldAmount = useSale
+      ? regularAmount
+      : compareAmount;
+
+    return {
+      amount,
+      compareAtPrice:
+        oldAmount !== null && oldAmount > amount
+          ? oldAmount
+          : null,
+      currency: String(
+        selectedPrice.currency_code || "USD"
+      ).toUpperCase()
+    };
+  }
+
+  function normalizeProduct(product, mediaRows, priceRows) {
+    if (!product || product.id == null) {
+      return null;
+    }
+
+    if (!String(product.name ?? "").trim()) {
+      return null;
+    }
+
+    if (!isPublicProduct(product)) {
+      return null;
+    }
+
+    const media = getProductMedia(mediaRows, product.id);
+
+    const validMedia = media.find((item) =>
+      safeURL(item.url) || safeURL(item.thumbnail_url)
+    );
+
+    const priceInfo = getPriceInformation(priceRows, product.id);
+
+    /*
+     * Do not silently hide a product because its price is missing.
+     * Keep it in the catalogue, but never invent a price.
+     */
+    const image = validMedia
+      ? safeURL(validMedia.url) || safeURL(validMedia.thumbnail_url)
+      : "";
+
+    const createdAt = product.created_at
+      ? Date.parse(product.created_at)
+      : 0;
+
+    return {
+      id: String(product.id),
+      name: String(product.name).trim(),
+      slug: String(product.slug || product.id),
+      description: String(
+        product.short_description ||
+        product.description ||
+        ""
+      ),
+      image,
+      categoryName: String(
+        product.category_name ||
+        product.category ||
+        ""
+      ),
+      price: priceInfo?.amount ?? null,
+      compareAtPrice: priceInfo?.compareAtPrice ?? null,
+      currency: priceInfo?.currency || "USD",
+      available: null,
+      rating: null,
+      reviewCount: 0,
+      popularity:
+        normalizeBoolean(product.is_best_seller) === true
+          ? 2
+          : normalizeBoolean(product.is_featured) === true
+            ? 1
+            : 0,
+      isNewArrival:
+        normalizeBoolean(product.is_new_arrival) === true,
+      isBestSeller:
+        normalizeBoolean(product.is_best_seller) === true,
+      createdAt: Number.isFinite(createdAt) ? createdAt : 0
+    };
   }
 
   function showState(title, message, type = "empty") {
-    if (!elements.catalogState) return;
+    if (!elements.catalogState) {
+      return;
+    }
 
     elements.catalogState.classList.add("is-visible");
-    elements.catalogState.hidden = false;
 
     if (elements.stateTitle) {
       elements.stateTitle.textContent = title;
@@ -160,7 +460,9 @@ const Shop = (() => {
 
     if (elements.stateEyebrow) {
       elements.stateEyebrow.textContent =
-        type === "error" ? "CATALOGUE CONNECTION" : "XELOS CATALOGUE";
+        type === "error"
+          ? "CATALOGUE CONNECTION"
+          : "XELOS CATALOGUE";
     }
 
     if (elements.stateReset) {
@@ -169,10 +471,7 @@ const Shop = (() => {
   }
 
   function hideState() {
-    if (!elements.catalogState) return;
-
-    elements.catalogState.classList.remove("is-visible");
-    elements.catalogState.hidden = true;
+    elements.catalogState?.classList.remove("is-visible");
   }
 
   function setLoading() {
@@ -200,7 +499,10 @@ const Shop = (() => {
     }
 
     hideState();
-    setStatus("Loading catalogue…");
+
+    if (elements.catalogStatus) {
+      elements.catalogStatus.textContent = "Loading catalogue…";
+    }
 
     if (elements.resultsSummary) {
       elements.resultsSummary.textContent = "Loading products…";
@@ -211,7 +513,7 @@ const Shop = (() => {
     }
   }
 
-  function setError(message, technicalError = null) {
+  function setError(message) {
     state.loading = false;
     state.loaded = false;
     state.error = message;
@@ -223,7 +525,10 @@ const Shop = (() => {
     }
 
     showState("Catalogue unavailable", message, "error");
-    setStatus("Unable to load catalogue.");
+
+    if (elements.catalogStatus) {
+      elements.catalogStatus.textContent = "Loading error";
+    }
 
     if (elements.resultsSummary) {
       elements.resultsSummary.textContent =
@@ -233,248 +538,102 @@ const Shop = (() => {
     if (elements.catalogPagination) {
       elements.catalogPagination.hidden = true;
     }
-
-    if (technicalError) {
-      console.error("XELOS catalogue error:", {
-        message: technicalError.message ?? String(technicalError),
-        code: technicalError.code ?? null,
-        details: technicalError.details ?? null,
-        hint: technicalError.hint ?? null
-      });
-    }
   }
 
-  /**
-   * Accept either an array or a common { data, error } response.
-   * If the wrapper returns an error object, surface it instead of
-   * silently rendering an empty catalogue.
-   */
-  function unwrapRows(result, tableName) {
-    if (result?.error) {
-      throw result.error;
+  function getErrorMessage(error) {
+    const code = error?.code;
+    const details = error?.message || String(error);
+
+    if (code === "42501") {
+      return "Supabase denied access. Check the SELECT RLS policies for the catalogue tables.";
     }
 
-    const rows = Array.isArray(result)
-      ? result
-      : Array.isArray(result?.data)
-        ? result.data
-        : null;
-
-    if (!rows) {
-      throw new Error(
-        `selectRows("${tableName}") did not return an array. ` +
-        "Inspect the return value of js/data.js."
-      );
+    if (code === "PGRST205" || code === "42P01") {
+      return "Supabase could not find a required table. Verify the project URL, schema and table names.";
     }
 
-    return rows;
-  }
-
-  async function queryRows(tableName, options) {
-    const result = await selectRows(tableName, options);
-    return unwrapRows(result, tableName);
-  }
-
-  function sameId(first, second) {
-    if (first == null || second == null) return false;
-    return String(first) === String(second);
-  }
-
-  function isPublicProduct(product) {
-    if (!product) return false;
-
-    const status = String(product.status ?? "").toLowerCase();
-    const visibility = String(product.visibility ?? "").toLowerCase();
-
-    return status === "active" && visibility === "public";
-  }
-
-  function getProductMedia(mediaRows, productId) {
-    return mediaRows
-      .filter((media) =>
-        sameId(media.product_id, productId) &&
-        media.is_active !== false &&
-        String(media.media_type ?? "image").toLowerCase() === "image"
-      )
-      .sort((a, b) => {
-        if (Boolean(a.is_primary) !== Boolean(b.is_primary)) {
-          return a.is_primary ? -1 : 1;
-        }
-
-        return Number(a.position ?? 0) - Number(b.position ?? 0);
-      });
-  }
-
-  function getCurrentPrices(priceRows, productId) {
-    const now = Date.now();
-
-    return priceRows.filter((price) => {
-      if (!sameId(price.product_id, productId)) return false;
-      if (price.is_active === false) return false;
-
-      const startsAt = price.starts_at
-        ? Date.parse(price.starts_at)
-        : 0;
-
-      const endsAt = price.ends_at
-        ? Date.parse(price.ends_at)
-        : null;
-
-      if (Number.isFinite(startsAt) && startsAt > now) return false;
-
-      if (
-        endsAt !== null &&
-        Number.isFinite(endsAt) &&
-        endsAt <= now
-      ) {
-        return false;
-      }
-
-      return ["regular", "sale", "compare_at"].includes(
-        String(price.price_type ?? "").toLowerCase()
-      );
-    });
-  }
-
-  function latestPrice(rows, type) {
-    return rows
-      .filter((row) => row.price_type === type)
-      .sort((a, b) => {
-        const dateA = a.starts_at ? Date.parse(a.starts_at) || 0 : 0;
-        const dateB = b.starts_at ? Date.parse(b.starts_at) || 0 : 0;
-
-        return dateB - dateA;
-      })[0] ?? null;
-  }
-
-  function normalizeProduct(product, mediaRows, priceRows) {
-    if (!product || !isPublicProduct(product)) return null;
-
-    if (product.id == null || !String(product.name ?? "").trim()) {
-      return null;
+    if (code === "PGRST200" || code === "42703") {
+      return "A requested table relationship or column could not be found. Check the actual database schema.";
     }
 
-    const media = getProductMedia(mediaRows, product.id);
-
-    const validMedia = media.find((item) =>
-      safeURL(item.url) || safeURL(item.thumbnail_url)
-    );
-
-    const prices = getCurrentPrices(priceRows, product.id);
-
-    const regular = latestPrice(prices, "regular");
-    const sale = latestPrice(prices, "sale");
-    const compare = latestPrice(prices, "compare_at");
-
-    const regularAmount = regular ? Number(regular.amount) : NaN;
-    const saleAmount = sale ? Number(sale.amount) : NaN;
-
-    const useSale = Boolean(
-      regular &&
-      sale &&
-      Number.isFinite(regularAmount) &&
-      Number.isFinite(saleAmount) &&
-      saleAmount >= 0 &&
-      saleAmount < regularAmount
-    );
-
-    const selectedPrice = useSale ? sale : regular;
-
-    let amount = null;
-    let currency = "USD";
-
-    if (selectedPrice && Number.isFinite(Number(selectedPrice.amount))) {
-      amount = Number(selectedPrice.amount);
-      currency = String(selectedPrice.currency_code || "USD").toUpperCase();
+    if (code === "PGRST301" || code === "401" || code === "403") {
+      return "The request was rejected. Check the Supabase session, API key configuration and access policies.";
     }
 
-    const compareAmount = useSale
-      ? regularAmount
-      : compare
-        ? Number(compare.amount)
-        : NaN;
-
-    const compareAtPrice =
-      amount !== null &&
-      Number.isFinite(compareAmount) &&
-      compareAmount > amount
-        ? compareAmount
-        : null;
-
-    const image = validMedia
-      ? safeURL(validMedia.url) || safeURL(validMedia.thumbnail_url)
-      : "";
-
-    return {
-      id: String(product.id),
-      name: String(product.name).trim(),
-      slug: String(product.slug || product.id),
-      description: String(
-        product.short_description || product.description || ""
-      ),
-      image,
-      categoryName: String(
-        product.category_name ||
-        product.category ||
-        ""
-      ),
-      price: amount,
-      compareAtPrice,
-      currency,
-      available: null,
-      rating: null,
-      reviewCount: 0,
-      popularity: product.is_best_seller === true ? 2 :
-        product.is_featured === true ? 1 : 0,
-      isNewArrival: product.is_new_arrival === true,
-      isBestSeller: product.is_best_seller === true,
-      createdAt: product.created_at
-        ? Date.parse(product.created_at) || 0
-        : 0
-    };
+    return `Catalogue request failed: ${details}`;
   }
 
   async function loadCatalogue() {
-    if (state.loading) return;
+    if (state.loading) {
+      return;
+    }
 
     setLoading();
 
     try {
       /*
-       * Read the existing public tables through data.js.
-       * No guessed filters are passed to selectRows.
+       * Keep the existing data.js abstraction.
+       * normalizeRows supports either a plain array or { data, error }.
        */
-      const [productRows, mediaRows, priceRows] = await Promise.all([
-        queryRows("products", {
+      const results = await Promise.all([
+        selectRows("products", {
           limit: 1000,
           orderBy: "created_at",
           ascending: false
         }),
-        queryRows("product_media", {
+        selectRows("product_media", {
           limit: 5000,
           orderBy: "position",
           ascending: true
         }),
-        queryRows("product_prices", {
+        selectRows("product_prices", {
           limit: 5000,
           orderBy: "starts_at",
           ascending: false
         })
       ]);
 
-      console.info("XELOS catalogue query results:", {
+      const productRows = normalizeRows(results[0], "products");
+      const mediaRows = normalizeRows(results[1], "product_media");
+      const priceRows = normalizeRows(results[2], "product_prices");
+
+      console.info("XELOS catalogue: Supabase response", {
         productsReturned: productRows.length,
         mediaReturned: mediaRows.length,
         pricesReturned: priceRows.length
       });
 
-      const publicProducts = productRows.filter(isPublicProduct);
+      if (productRows.length > 0) {
+        const firstProduct = productRows[0];
 
-      const normalizedProducts = publicProducts
-        .map((product) => normalizeProduct(product, mediaRows, priceRows))
+        console.debug("XELOS catalogue: product field names", {
+          fields: Object.keys(firstProduct),
+          status: firstProduct.status ?? "(missing)",
+          visibility: firstProduct.visibility ?? "(missing)"
+        });
+      }
+
+      const normalized = productRows
+        .map((product) =>
+          normalizeProduct(product, mediaRows, priceRows)
+        )
         .filter(Boolean);
 
-      state.products = normalizedProducts;
+      const pricedProducts = normalized.filter(
+        (product) => product.price !== null
+      ).length;
+
+      const productsWithImages = normalized.filter(
+        (product) => Boolean(product.image)
+      ).length;
+
+      console.info("XELOS catalogue: normalized response", {
+        productsAvailable: normalized.length,
+        productsWithPrices: pricedProducts,
+        productsWithImages
+      });
+
+      state.products = normalized;
       state.loaded = true;
       state.loading = false;
       state.error = null;
@@ -482,48 +641,23 @@ const Shop = (() => {
 
       renderCategories();
       render();
-
-      if (productRows.length > 0 && publicProducts.length === 0) {
-        console.warn(
-          "XELOS: products were returned, but none matched status='active' " +
-          "and visibility='public'. Check the actual database values."
-        );
-      }
-
-      if (publicProducts.length > 0 && normalizedProducts.length === 0) {
-        console.warn(
-          "XELOS: public products were returned but could not be normalized."
-        );
-      }
     } catch (error) {
-      state.loading = false;
+      console.error("XELOS shop: catalogue loading failed.", {
+        code: error?.code ?? null,
+        message: error?.message ?? String(error),
+        details: error?.details ?? null,
+        hint: error?.hint ?? null,
+        error
+      });
 
-      let message =
-        "The catalogue could not be loaded. Open the browser console for details.";
-
-      if (error?.code === "42501") {
-        message =
-          "Supabase denied access. Check the SELECT permissions and RLS policies for the catalogue tables.";
-      } else if (
-        error?.code === "PGRST205" ||
-        error?.code === "PGRST200" ||
-        error?.code === "42P01"
-      ) {
-        message =
-          "Supabase could not find a catalogue table or relationship. Check the active project and database schema.";
-      } else if (
-        /selectRows.*did not return an array/i.test(error?.message ?? "")
-      ) {
-        message =
-          "The data.js response format is incompatible with this page. Check the selectRows function.";
-      }
-
-      setError(message, error);
+      setError(getErrorMessage(error));
     }
   }
 
   function renderCategories() {
-    if (!elements.categoryOptions) return;
+    if (!elements.categoryOptions) {
+      return;
+    }
 
     const categories = [
       ...new Set(
@@ -533,44 +667,42 @@ const Shop = (() => {
       )
     ].sort((a, b) => a.localeCompare(b, "en"));
 
-    if (!categories.length) {
+    if (categories.length === 0) {
       elements.categoryOptions.innerHTML = `
         <p class="filter-hint">
-          No category information is available for the loaded products.
+          No category names are available in the returned product data.
         </p>
       `;
       return;
     }
 
-    elements.categoryOptions.innerHTML = `
-      <label class="filter-option">
+    elements.categoryOptions.innerHTML = categories.map((category) => `
+      <label class="filter-option filter-option--checkbox">
         <input
-          type="radio"
+          type="checkbox"
           name="shopCategory"
-          value=""
-          ${state.category === "" ? "checked" : ""}
+          value="${escapeHTML(category)}"
+          ${state.category === category ? "checked" : ""}
         >
-        <span>All categories</span>
+        <span>${escapeHTML(category)}</span>
       </label>
-      ${categories.map((category) => `
-        <label class="filter-option">
-          <input
-            type="radio"
-            name="shopCategory"
-            value="${escapeHTML(category)}"
-            ${state.category === category ? "checked" : ""}
-          >
-          <span>${escapeHTML(category)}</span>
-        </label>
-      `).join("")}
-    `;
+    `).join("");
 
     elements.categoryOptions
       .querySelectorAll('input[name="shopCategory"]')
       .forEach((input) => {
         input.addEventListener("change", () => {
-          state.category = input.value;
+          state.category = input.checked ? input.value : "";
           state.page = 1;
+
+          elements.categoryOptions
+            .querySelectorAll('input[name="shopCategory"]')
+            .forEach((other) => {
+              if (other !== input) {
+                other.checked = false;
+              }
+            });
+
           render();
         });
       });
@@ -581,22 +713,35 @@ const Shop = (() => {
       state.search = elements.catalogSearch.value.trim();
     }
 
-    if (elements.minPrice) state.minPrice = elements.minPrice.value;
-    if (elements.maxPrice) state.maxPrice = elements.maxPrice.value;
+    if (elements.minPrice) {
+      state.minPrice = elements.minPrice.value;
+    }
+
+    if (elements.maxPrice) {
+      state.maxPrice = elements.maxPrice.value;
+    }
 
     if (elements.inStockOnly) {
       state.inStockOnly = elements.inStockOnly.checked;
     }
 
-    if (elements.sortSelect) state.sort = elements.sortSelect.value;
+    if (elements.sortSelect) {
+      state.sort = elements.sortSelect.value;
+    }
 
     state.page = 1;
   }
 
   function getFilteredProducts() {
     const query = state.search.toLocaleLowerCase("en-US");
-    const min = state.minPrice === "" ? null : Number(state.minPrice);
-    const max = state.maxPrice === "" ? null : Number(state.maxPrice);
+
+    const min = state.minPrice === ""
+      ? null
+      : Number(state.minPrice);
+
+    const max = state.maxPrice === ""
+      ? null
+      : Number(state.maxPrice);
 
     let products = state.products.filter((product) => {
       if (query) {
@@ -606,13 +751,22 @@ const Shop = (() => {
           product.categoryName
         ].join(" ").toLocaleLowerCase("en-US");
 
-        if (!searchableText.includes(query)) return false;
+        if (!searchableText.includes(query)) {
+          return false;
+        }
       }
 
-      if (state.category && product.categoryName !== state.category) {
+      if (
+        state.category &&
+        product.categoryName !== state.category
+      ) {
         return false;
       }
 
+      /*
+       * Products without prices remain visible in the catalogue,
+       * but cannot be evaluated against a price filter.
+       */
       if (min !== null && (product.price === null || product.price < min)) {
         return false;
       }
@@ -621,8 +775,13 @@ const Shop = (() => {
         return false;
       }
 
-      // Inventory data has not been verified; do not claim stock availability.
-      if (state.inStockOnly && product.available !== true) return false;
+      /*
+       * Inventory schema has not been confirmed.
+       * Do not pretend that stock availability is known.
+       */
+      if (state.inStockOnly && product.available !== true) {
+        return false;
+      }
 
       return true;
     });
@@ -669,21 +828,23 @@ const Shop = (() => {
 
   function createProductCard(product) {
     const url = productURL(product);
+    const hasPrice = product.price !== null;
     const hasDiscount = product.compareAtPrice !== null;
 
     const imageMarkup = product.image
       ? `
-        <a href="${url}" tabindex="-1" aria-hidden="true">
+        <a href="${escapeHTML(url)}" tabindex="-1" aria-hidden="true">
           <img
             src="${escapeHTML(product.image)}"
             alt=""
             loading="lazy"
             decoding="async"
+            onerror="this.closest('.shop-product-card__media').classList.add('image-load-failed');this.remove();"
           >
         </a>
       `
       : `
-        <a href="${url}" tabindex="-1" aria-hidden="true">
+        <a href="${escapeHTML(url)}" tabindex="-1" aria-hidden="true">
           <div class="shop-product-card__placeholder">
             <span aria-hidden="true">X</span>
           </div>
@@ -697,42 +858,44 @@ const Shop = (() => {
         : "";
 
     const description = product.description
-      ? `<p class="shop-product-card__description">${escapeHTML(
-          product.description.slice(0, 110)
-        )}${product.description.length > 110 ? "…" : ""}</p>`
+      ? `
+        <p class="shop-product-card__description">
+          ${escapeHTML(product.description.slice(0, 110))}
+          ${product.description.length > 110 ? "…" : ""}
+        </p>
+      `
       : "";
 
-    const priceMarkup = product.price !== null
+    const priceMarkup = hasPrice
       ? `
         <span class="shop-product-card__price">
           ${escapeHTML(formatPrice(product.price, product.currency))}
         </span>
-        ${hasDiscount
-          ? `<span class="shop-product-card__old-price">${escapeHTML(
-              formatPrice(product.compareAtPrice, product.currency)
-            )}</span>`
-          : ""}
+        ${hasDiscount ? `
+          <span class="shop-product-card__old-price">
+            ${escapeHTML(formatPrice(product.compareAtPrice, product.currency))}
+          </span>
+        ` : ""}
       `
       : `
-        <span class="shop-product-card__price">
+        <span class="shop-product-card__price shop-product-card__price--unavailable">
           Price unavailable
         </span>
       `;
 
     return `
-      <article class="shop-product-card" data-product-id="${escapeHTML(product.id)}">
+      <article
+        class="shop-product-card"
+        data-product-id="${escapeHTML(product.id)}"
+      >
         <div class="shop-product-card__media">
           ${imageMarkup}
           ${badge}
         </div>
 
         <div class="shop-product-card__details">
-          ${product.categoryName
-            ? `<p class="shop-product-card__category">${escapeHTML(product.categoryName)}</p>`
-            : ""}
-
           <h3 class="shop-product-card__title">
-            <a href="${url}">${escapeHTML(product.name)}</a>
+            <a href="${escapeHTML(url)}">${escapeHTML(product.name)}</a>
           </h3>
 
           ${description}
@@ -742,18 +905,20 @@ const Shop = (() => {
           </div>
 
           <div class="shop-product-card__actions">
-            <a class="shop-product-card__details-link" href="${url}">
+            <a
+              class="shop-product-card__details-link"
+              href="${escapeHTML(url)}"
+            >
               View product
             </a>
+
             <a
               class="shop-product-card__quick-add"
               href="wishlist.html"
               aria-label="Open wishlist"
               title="Open wishlist"
             >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20.8 8.8c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.6 4.6 0 0 1 12 6.3a4.6 4.6 0 0 1 8.8 2.5Z"></path>
-              </svg>
+              <i class="fa-regular fa-heart" aria-hidden="true"></i>
             </a>
           </div>
         </div>
@@ -762,7 +927,9 @@ const Shop = (() => {
   }
 
   function renderActiveFilters() {
-    if (!elements.activeFilters) return;
+    if (!elements.activeFilters) {
+      return;
+    }
 
     const filters = [];
 
@@ -771,8 +938,14 @@ const Shop = (() => {
         label: `Search: ${state.search}`,
         clear: () => {
           state.search = "";
-          if (elements.catalogSearch) elements.catalogSearch.value = "";
-          if (elements.headerSearchInput) elements.headerSearchInput.value = "";
+
+          if (elements.catalogSearch) {
+            elements.catalogSearch.value = "";
+          }
+
+          if (elements.headerSearchInput) {
+            elements.headerSearchInput.value = "";
+          }
         }
       });
     }
@@ -782,7 +955,6 @@ const Shop = (() => {
         label: `Category: ${state.category}`,
         clear: () => {
           state.category = "";
-          renderCategories();
         }
       });
     }
@@ -792,7 +964,10 @@ const Shop = (() => {
         label: `Min. ${state.minPrice}`,
         clear: () => {
           state.minPrice = "";
-          if (elements.minPrice) elements.minPrice.value = "";
+
+          if (elements.minPrice) {
+            elements.minPrice.value = "";
+          }
         }
       });
     }
@@ -802,17 +977,23 @@ const Shop = (() => {
         label: `Max. ${state.maxPrice}`,
         clear: () => {
           state.maxPrice = "";
-          if (elements.maxPrice) elements.maxPrice.value = "";
+
+          if (elements.maxPrice) {
+            elements.maxPrice.value = "";
+          }
         }
       });
     }
 
     if (state.inStockOnly) {
       filters.push({
-        label: "In stock",
+        label: "Available only",
         clear: () => {
           state.inStockOnly = false;
-          if (elements.inStockOnly) elements.inStockOnly.checked = false;
+
+          if (elements.inStockOnly) {
+            elements.inStockOnly.checked = false;
+          }
         }
       });
     }
@@ -824,15 +1005,27 @@ const Shop = (() => {
           type="button"
           data-clear-filter="${index}"
           aria-label="Remove filter ${escapeHTML(filter.label)}"
-        >×</button>
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
       </span>
     `).join("");
 
-    elements.activeFilters.querySelectorAll("[data-clear-filter]")
+    elements.activeFilters
+      .querySelectorAll("[data-clear-filter]")
       .forEach((button) => {
         button.addEventListener("click", () => {
           filters[Number(button.dataset.clearFilter)]?.clear();
           state.page = 1;
+
+          if (elements.categoryOptions) {
+            elements.categoryOptions
+              .querySelectorAll('input[name="shopCategory"]')
+              .forEach((input) => {
+                input.checked = input.value === state.category;
+              });
+          }
+
           render();
         });
       });
@@ -844,7 +1037,9 @@ const Shop = (() => {
   }
 
   function renderPagination(totalPages) {
-    if (!elements.catalogPagination || !elements.paginationPages) return;
+    if (!elements.catalogPagination || !elements.paginationPages) {
+      return;
+    }
 
     if (totalPages <= 1) {
       elements.catalogPagination.hidden = true;
@@ -862,25 +1057,39 @@ const Shop = (() => {
       elements.nextPage.disabled = state.page >= totalPages;
     }
 
-    const start = Math.max(1, Math.min(state.page - 2, totalPages - 4));
+    const start = Math.max(
+      1,
+      Math.min(state.page - 2, totalPages - 4)
+    );
+
     const end = Math.min(totalPages, start + 4);
     const pages = [];
 
-    if (start > 1) pages.push({ label: "1", page: 1 });
-    if (start > 2) pages.push({ label: "…", page: null });
+    if (start > 1) {
+      pages.push({ label: "1", page: 1 });
+    }
+
+    if (start > 2) {
+      pages.push({ label: "…", page: null });
+    }
 
     for (let page = start; page <= end; page += 1) {
       pages.push({ label: String(page), page });
     }
 
-    if (end < totalPages - 1) pages.push({ label: "…", page: null });
+    if (end < totalPages - 1) {
+      pages.push({ label: "…", page: null });
+    }
+
     if (end < totalPages) {
       pages.push({ label: String(totalPages), page: totalPages });
     }
 
     elements.paginationPages.innerHTML = pages.map((item) => {
       if (item.page === null) {
-        return `<span class="pagination-page" aria-hidden="true">…</span>`;
+        return `
+          <span class="pagination-page" aria-hidden="true">…</span>
+        `;
       }
 
       return `
@@ -893,7 +1102,8 @@ const Shop = (() => {
       `;
     }).join("");
 
-    elements.paginationPages.querySelectorAll("[data-page]")
+    elements.paginationPages
+      .querySelectorAll("[data-page]")
       .forEach((button) => {
         button.addEventListener("click", () => {
           state.page = Number(button.dataset.page);
@@ -904,10 +1114,14 @@ const Shop = (() => {
   }
 
   function scrollToResults() {
-    if (!elements.productGrid) return;
+    if (!elements.productGrid) {
+      return;
+    }
 
-    const top = elements.productGrid.getBoundingClientRect().top +
-      window.scrollY - 130;
+    const top =
+      elements.productGrid.getBoundingClientRect().top +
+      window.scrollY -
+      130;
 
     window.scrollTo({
       top,
@@ -920,17 +1134,13 @@ const Shop = (() => {
   function render() {
     renderActiveFilters();
 
-    if (state.loading || state.error || !elements.productGrid) return;
+    if (state.loading || state.error || !elements.productGrid) {
+      return;
+    }
 
     if (!state.loaded) {
       elements.productGrid.replaceChildren();
       elements.productGrid.hidden = true;
-
-      showState(
-        "Your next discovery starts here",
-        "Products will appear when the catalogue has loaded."
-      );
-
       return;
     }
 
@@ -947,7 +1157,12 @@ const Shop = (() => {
       elements.productGrid.hidden = true;
       elements.productGrid.setAttribute("aria-busy", "false");
 
-      setStatus("No results");
+      if (elements.catalogStatus) {
+        elements.catalogStatus.textContent =
+          state.products.length === 0
+            ? "No products available"
+            : "No results";
+      }
 
       if (elements.resultsSummary) {
         elements.resultsSummary.textContent = "0 products found";
@@ -955,10 +1170,10 @@ const Shop = (() => {
 
       showState(
         state.products.length === 0
-          ? "The catalogue is empty"
+          ? "No products available"
           : "No results found",
         state.products.length === 0
-          ? "No active public products were returned. Check the database values and catalogue policies."
+          ? "No products passed the catalogue visibility checks. Check the console for returned row counts and product status fields."
           : "No products match these filters. Try changing your search."
       );
 
@@ -995,13 +1210,20 @@ const Shop = (() => {
 
     if (elements.resultsSummary) {
       const first = startIndex + 1;
-      const last = Math.min(startIndex + state.pageSize, totalProducts);
+      const last = Math.min(
+        startIndex + state.pageSize,
+        totalProducts
+      );
 
       elements.resultsSummary.textContent =
         `Showing ${first}–${last} of ${totalProducts} products`;
     }
 
-    setStatus(`${state.products.length} products loaded`);
+    if (elements.catalogStatus) {
+      elements.catalogStatus.textContent =
+        `${state.products.length} products loaded`;
+    }
+
     renderPagination(totalPages);
   }
 
@@ -1013,18 +1235,34 @@ const Shop = (() => {
     state.inStockOnly = false;
     state.page = 1;
 
-    if (elements.catalogSearch) elements.catalogSearch.value = "";
-    if (elements.headerSearchInput) elements.headerSearchInput.value = "";
-    if (elements.minPrice) elements.minPrice.value = "";
-    if (elements.maxPrice) elements.maxPrice.value = "";
-    if (elements.inStockOnly) elements.inStockOnly.checked = false;
-
-    if (elements.sortSelect) {
-      elements.sortSelect.value = "recommended";
-      state.sort = "recommended";
+    if (elements.catalogSearch) {
+      elements.catalogSearch.value = "";
     }
 
-    renderCategories();
+    if (elements.headerSearchInput) {
+      elements.headerSearchInput.value = "";
+    }
+
+    if (elements.minPrice) {
+      elements.minPrice.value = "";
+    }
+
+    if (elements.maxPrice) {
+      elements.maxPrice.value = "";
+    }
+
+    if (elements.inStockOnly) {
+      elements.inStockOnly.checked = false;
+    }
+
+    if (elements.categoryOptions) {
+      elements.categoryOptions
+        .querySelectorAll('input[name="shopCategory"]')
+        .forEach((input) => {
+          input.checked = false;
+        });
+    }
+
     render();
   }
 
@@ -1036,7 +1274,11 @@ const Shop = (() => {
     }
 
     if (elements.filterToggle) {
-      elements.filterToggle.setAttribute("aria-expanded", String(open));
+      elements.filterToggle.setAttribute(
+        "aria-expanded",
+        String(open)
+      );
+
       elements.filterToggle.classList.toggle("is-active", open);
     }
   }
@@ -1052,23 +1294,40 @@ const Shop = (() => {
 
       elements.viewToggle.setAttribute(
         "aria-label",
-        state.view === "list" ? "Switch to grid view" : "Switch to list view"
+        state.view === "list"
+          ? "Switch to grid view"
+          : "Switch to list view"
       );
+
+      elements.viewToggle.innerHTML = state.view === "list"
+        ? '<i class="fa-solid fa-grip" aria-hidden="true"></i>'
+        : '<i class="fa-solid fa-list" aria-hidden="true"></i>';
     }
 
     render();
   }
 
   function toggleMobileMenu() {
-    if (!elements.primaryNavigation || !elements.menuToggle) return;
+    if (!elements.primaryNavigation || !elements.menuToggle) {
+      return;
+    }
 
-    const isOpen = elements.primaryNavigation.classList.toggle("is-open");
+    const isOpen =
+      elements.primaryNavigation.classList.toggle("is-open");
 
-    elements.menuToggle.setAttribute("aria-expanded", String(isOpen));
+    elements.menuToggle.setAttribute(
+      "aria-expanded",
+      String(isOpen)
+    );
+
     elements.menuToggle.setAttribute(
       "aria-label",
       isOpen ? "Close navigation menu" : "Open navigation menu"
     );
+
+    elements.menuToggle.innerHTML = isOpen
+      ? '<i class="fa-solid fa-xmark" aria-hidden="true"></i>'
+      : '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
   }
 
   function handleHeaderSearch(event) {
@@ -1084,7 +1343,7 @@ const Shop = (() => {
     state.page = 1;
     render();
 
-    (byId("catalogue") || elements.productGrid)?.scrollIntoView({
+    byId("catalogue")?.scrollIntoView({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "auto"
         : "smooth"
@@ -1100,6 +1359,7 @@ const Shop = (() => {
     state.inStockOnly = params.get("available") === "true";
 
     const sort = params.get("sort") || "recommended";
+
     const validSorts = [
       "recommended",
       "newest",
@@ -1119,8 +1379,13 @@ const Shop = (() => {
       elements.headerSearchInput.value = state.search;
     }
 
-    if (elements.minPrice) elements.minPrice.value = state.minPrice;
-    if (elements.maxPrice) elements.maxPrice.value = state.maxPrice;
+    if (elements.minPrice) {
+      elements.minPrice.value = state.minPrice;
+    }
+
+    if (elements.maxPrice) {
+      elements.maxPrice.value = state.maxPrice;
+    }
 
     if (elements.inStockOnly) {
       elements.inStockOnly.checked = state.inStockOnly;
@@ -1139,11 +1404,15 @@ const Shop = (() => {
     elements.maxPrice?.setCustomValidity("");
 
     if (min !== "" && (!Number.isFinite(Number(min)) || Number(min) < 0)) {
-      elements.minPrice?.setCustomValidity("Enter a valid minimum price.");
+      elements.minPrice?.setCustomValidity(
+        "Enter a valid minimum price."
+      );
     }
 
     if (max !== "" && (!Number.isFinite(Number(max)) || Number(max) < 0)) {
-      elements.maxPrice?.setCustomValidity("Enter a valid maximum price.");
+      elements.maxPrice?.setCustomValidity(
+        "Enter a valid maximum price."
+      );
     }
 
     if (
@@ -1158,31 +1427,50 @@ const Shop = (() => {
       );
     }
 
-    const minValid = !elements.minPrice ||
-      elements.minPrice.reportValidity();
+    const minValid =
+      !elements.minPrice || elements.minPrice.reportValidity();
 
-    const maxValid = !elements.maxPrice ||
-      elements.maxPrice.reportValidity();
+    const maxValid =
+      !elements.maxPrice || elements.maxPrice.reportValidity();
 
     return minValid && maxValid;
   }
 
-  /* ---------------------------------------------------------
-     Header authentication
-     --------------------------------------------------------- */
+  // ------------------------------------------------------------
+  // HEADER AUTHENTICATION
+  // ------------------------------------------------------------
 
-  function renderHeaderActions(user) {
-    const container = $(".shop-header__actions");
+  function renderHeaderActions(isAuthenticated) {
+    const container =
+      elements.shopHeaderActions ||
+      $(".shop-header__actions");
 
-    if (!container) return;
+    if (!container) {
+      console.warn(
+        "XELOS header: #shopHeaderActions was not found in shop.html."
+      );
+      return;
+    }
 
-    if (!user) {
+    if (isAuthenticated) {
       container.innerHTML = `
-        <a class="button button-secondary shop-auth-link" href="login.html">
-          Sign in
+        <a
+          class="header-action"
+          href="account.html"
+          aria-label="My account"
+          title="My account"
+        >
+          <i class="fa-regular fa-user" aria-hidden="true"></i>
         </a>
-        <a class="button button-primary shop-auth-link" href="signup.html">
-          Sign up
+
+        <a
+          class="header-action header-action--cart"
+          href="cart.html"
+          aria-label="Shopping cart"
+          title="Shopping cart"
+        >
+          <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+          <span class="cart-count" id="cartCount" hidden>0</span>
         </a>
       `;
 
@@ -1190,63 +1478,127 @@ const Shop = (() => {
     }
 
     container.innerHTML = `
-      <a
-        class="header-action"
-        href="account.html"
-        aria-label="My account"
-        title="My account"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="8" r="3.5"></circle>
-          <path d="M5 20c.6-3.6 3.1-5.5 7-5.5s6.4 1.9 7 5.5"></path>
-        </svg>
+      <a class="header-action header-action--login" href="login.html">
+        Sign in
       </a>
 
-      <a
-        class="header-action header-action--cart"
-        href="cart.html"
-        aria-label="Shopping cart"
-        title="Shopping cart"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.5L21 8H6"></path>
-          <circle cx="10" cy="20" r="1"></circle>
-          <circle cx="18" cy="20" r="1"></circle>
-        </svg>
-        <span class="cart-count" id="cartCount" hidden>0</span>
+      <a class="button button-primary header-action--signup" href="signup.html">
+        Create account
       </a>
     `;
-
-    elements.cartCount = byId("cartCount");
   }
 
-  async function syncAuthentication() {
-    if (!supabase?.auth) {
-      console.error(
-        "XELOS shop: Supabase client was not found in ./supabase.js. " +
-        "Check the actual export in that file."
-      );
+  function getSupabaseClient(module) {
+    if (!module) {
+      return null;
+    }
 
-      // Keep the header usable while reporting the missing client.
-      renderHeaderActions(null);
+    const candidates = [
+      module.supabase,
+      module.supabaseClient,
+      module.client,
+      module.default
+    ];
+
+    return candidates.find((candidate) =>
+      candidate &&
+      candidate.auth &&
+      typeof candidate.auth.getSession === "function"
+    ) || null;
+  }
+
+  async function findSupabaseClient() {
+    /*
+     * Try the common client module locations without making a failed
+     * optional import prevent the catalogue from loading.
+     *
+     * If your project uses a different path/export, adapt this list
+     * to the actual js/data.js and Supabase client implementation.
+     */
+    const modulePaths = [
+      "./supabase.js",
+      "./core/supabase.js"
+    ];
+
+    for (const path of modulePaths) {
+      try {
+        const module = await import(path);
+        const client = getSupabaseClient(module);
+
+        if (client) {
+          return client;
+        }
+      } catch (error) {
+        console.debug(
+          `XELOS auth: could not initialize client from ${path}.`,
+          error?.message || error
+        );
+      }
+    }
+
+    return null;
+  }
+
+  async function initializeHeaderAuth() {
+    const container =
+      elements.shopHeaderActions ||
+      $(".shop-header__actions");
+
+    if (!container) {
       return;
     }
 
+    /*
+     * Do not show account/cart links before the session check finishes.
+     */
+    container.innerHTML = `
+      <span class="header-actions__loading" aria-label="Checking account">
+        <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+      </span>
+    `;
+
+    const client = await findSupabaseClient();
+
+    if (!client) {
+      /*
+       * Fail closed: without a verifiable session, show visitor links.
+       * The catalogue can still load through data.js.
+       */
+      console.error(
+        "XELOS auth: Supabase client not found. " +
+        "Check the exports and path in your Supabase client module."
+      );
+
+      renderHeaderActions(false);
+      return;
+    }
+
+    state.authClient = client;
+
     try {
-      const { data, error } = await supabase.auth.getSession();
+      const { data, error } = await client.auth.getSession();
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
-      state.user = data?.session?.user ?? null;
-      renderHeaderActions(state.user);
+      renderHeaderActions(Boolean(data?.session?.user));
 
-      supabase.auth.onAuthStateChange((_event, session) => {
-        state.user = session?.user ?? null;
-        renderHeaderActions(state.user);
+      state.authInitialized = true;
+
+      const result = client.auth.onAuthStateChange((_event, session) => {
+        renderHeaderActions(Boolean(session?.user));
       });
+
+      state.authSubscription =
+        result?.data?.subscription || null;
     } catch (error) {
-      console.error("XELOS: could not read the Supabase session.", error);
-      renderHeaderActions(null);
+      console.error(
+        "XELOS auth: could not verify the Supabase session.",
+        error
+      );
+
+      renderHeaderActions(false);
     }
   }
 
@@ -1256,11 +1608,17 @@ const Shop = (() => {
     elements.primaryNavigation?.querySelectorAll("a").forEach((link) => {
       link.addEventListener("click", () => {
         elements.primaryNavigation.classList.remove("is-open");
+
         elements.menuToggle?.setAttribute("aria-expanded", "false");
         elements.menuToggle?.setAttribute(
           "aria-label",
           "Open navigation menu"
         );
+
+        if (elements.menuToggle) {
+          elements.menuToggle.innerHTML =
+            '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+        }
       });
     });
 
@@ -1268,22 +1626,21 @@ const Shop = (() => {
       if (event.key === "Escape") {
         elements.primaryNavigation?.classList.remove("is-open");
         elements.menuToggle?.setAttribute("aria-expanded", "false");
-        elements.menuToggle?.setAttribute(
-          "aria-label",
-          "Open navigation menu"
-        );
+
+        if (elements.menuToggle) {
+          elements.menuToggle.innerHTML =
+            '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+        }
       }
     });
 
-    elements.headerSearch?.addEventListener("submit", handleHeaderSearch);
+    elements.headerSearch?.addEventListener(
+      "submit",
+      handleHeaderSearch
+    );
 
     elements.catalogSearch?.addEventListener("input", () => {
       state.search = elements.catalogSearch.value.trim();
-
-      if (elements.headerSearchInput) {
-        elements.headerSearchInput.value = elements.catalogSearch.value;
-      }
-
       state.page = 1;
       render();
     });
@@ -1296,7 +1653,9 @@ const Shop = (() => {
     elements.stateReset?.addEventListener("click", clearFilters);
 
     elements.applyFilters?.addEventListener("click", () => {
-      if (!validatePriceInputs()) return;
+      if (!validatePriceInputs()) {
+        return;
+      }
 
       readFiltersFromForm();
       render();
@@ -1351,33 +1710,31 @@ const Shop = (() => {
     });
   }
 
-  async function init() {
+  function init() {
     cacheElements();
 
     if (elements.currentYear) {
-      elements.currentYear.textContent = String(new Date().getFullYear());
-    }
-
-    if (!elements.productGrid) {
-      console.error(
-        "XELOS shop: #productGrid was not found. Check the IDs in shop.html."
+      elements.currentYear.textContent = String(
+        new Date().getFullYear()
       );
-      return;
     }
 
     readURLParameters();
     bindEvents();
-    setFiltersOpen(state.filtersOpen);
 
-    await syncAuthentication();
-    await loadCatalogue();
+    /*
+     * Run auth and catalogue initialization independently.
+     * An auth client issue should not prevent data.js from loading products.
+     */
+    initializeHeaderAuth();
+    renderCategories();
+    loadCatalogue();
   }
 
   return {
     init,
     loadCatalogue,
-    clearFilters,
-    syncAuthentication
+    clearFilters
   };
 })();
 
